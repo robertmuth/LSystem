@@ -206,18 +206,13 @@ class State {
 
   void Init() {
     for (int i = 0; i < ParamDescriptor.gAllDescriptors.length; ++i) {
-      ParamDescriptor pd = ParamDescriptor.gAllDescriptors[i];
-      _state.add(pd.ctor());
+      _state.add(Null);
     }
   }
 
+  // Shallow copy! Relies on Update() to be copy on write.
   State Clone() {
-    var s = State();
-    for (int i = 0; i < ParamDescriptor.gAllDescriptors.length; ++i) {
-      ParamDescriptor pd = ParamDescriptor.gAllDescriptors[i];
-      s._state.add(pd.cloner(_state[i]));
-    }
-    return s;
+    return State().._state = List.from(_state);
   }
 
   void set(int key, dynamic val) {

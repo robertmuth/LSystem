@@ -3,7 +3,6 @@ import 'dart:html' as HTML;
 import 'dart:core';
 
 import 'params.dart';
-import 'color.dart';
 
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
@@ -60,10 +59,13 @@ class ModelExtractor extends rule.Plotter {
   void Fini(rule.State s) {}
 
   void UpdateScene(Scene scene, RenderProgram prog) {
+    var start = DateTime.now();
     scene.removeAll();
     scene.add(
         Node("cube", ShapeCube(prog, x: 20.0, y: 0.1, z: 20.0), _mat5)..setPos(0.0, -10.0, 0.0));
     scene.add(Node("tree", GeometryBuilderToMeshData("tree", prog, _gb), _mat2));
+    var stop = DateTime.now();
+    print("3d mesh creation took ${stop.difference(start)}");
   }
 }
 
