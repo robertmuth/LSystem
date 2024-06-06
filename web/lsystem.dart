@@ -32,6 +32,7 @@ class ModelExtractor extends rule.Plotter {
   final Material _mat4 = Material("mat4")..SetUniform(uColor, ColorCyan);
   final Material _mat5 = Material("plane")..SetUniform(uColor, ColorGray8);
   GeometryBuilder _gb = GeometryBuilder();
+  List<VM.Vector3> _polygon = [];
 
   ModelExtractor();
   @override
@@ -62,17 +63,21 @@ class ModelExtractor extends rule.Plotter {
 
   @override
   void PolyStart(rule.State s) {
-    //
+    _polygon.clear();
   }
 
   @override
   void PolyEnd(rule.State s) {
-    //
+    assert(_polygon.length >= 3);
+    int offset = _gb.AddVerticesTakeOwnership(_polygon);
+    for (int i = 1; i < _polygon.length - 1; ++i) {
+      _gb.AddFace3(offset + 0, offset + i, offset + i + 1);
+    }
   }
 
   @override
   void PolyPoint(VM.Vector3 dst, rule.State s) {
-    //
+    _polygon.add(dst);
   }
 
   void UpdateScene(Scene scene, RenderProgram prog) {
