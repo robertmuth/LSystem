@@ -29,6 +29,7 @@ enum Kind {
   STACK_POP,
   POLY_START,
   POLY_END,
+  COLOR_NEXT,
   //
 }
 
@@ -140,6 +141,7 @@ class Sym {
         return "[${text}]";
       //
       case Kind.INVALID:
+      case Kind.COLOR_NEXT:
       case Kind.STACK_PUSH:
       case Kind.STACK_POP:
       case Kind.POLY_START:
@@ -365,6 +367,8 @@ void RenderOne(Sym s, List<State> stack, Plotter plotter) {
         plotter.Draw(src, dst, dir, stack.last);
       }
       state.set(xPos, dst);
+    case Kind.COLOR_NEXT:
+    // TODO: add color handling
     case Kind.INVALID:
       assert(false);
   }

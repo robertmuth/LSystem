@@ -96,6 +96,12 @@ rule.SymIndex TranslateToSym(String s) {
       return rule.Sym.Simple(rule.Kind.STACK_PUSH);
     case "]":
       return rule.Sym.Simple(rule.Kind.STACK_POP);
+    case "{":
+      return rule.Sym.Simple(rule.Kind.POLY_START);
+    case "}":
+      return rule.Sym.Simple(rule.Kind.POLY_END);
+    case "'":
+      return rule.Sym.Simple(rule.Kind.COLOR_NEXT);
     case '<':
       return rule.Sym.Param(rule.Kind.GROW, rule.xStepSize, xStepGrowth);
     case '>':
