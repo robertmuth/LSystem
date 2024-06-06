@@ -10,6 +10,33 @@
 // "offsets" - optional triple "offset" (x, y, rotation)
 List<Map<String, String>> kExamples = [
   {
+    "i": "12",
+    "r": r"""
+L: EEEA;
+A: [++++++++++++++EC]B^+B[--------------ED]B+BA;
+C: [---------EE][+++++++++EE]B__+C;
+D: [---------EE][+++++++++EE]B__-D
+""",
+    "p.size": "10,0.01",
+    "p.angle": "4,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "fern"
+  },
+  {
+    "i": "4",
+    "r": r"""
+A: /A[++A]-\A[--A]+//A
+""",
+    "p.size": "10,0.01",
+    "p.angle": "18,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "vines"
+  },
+  {
     "i": "3",
     "r": """
 L: [S]^[S]+[S];
@@ -25,20 +52,6 @@ F: F
   },
   {
     "i": "3",
-    "r": """
-L: [S]+[S]+_\[S];
-S: [FF+F+F+F][|FFF+F+F+F];
-F: F
-""",
-    "p.size": "10,0.01",
-    "p.angle": "90,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "calibrate"
-  },
-  {
-    "i": "3",
     "r": r"""
 A: ^\AB^\ABA-B^//ABA_B+//ABA-B/A-/
 """,
@@ -50,8 +63,8 @@ A: ^\AB^\ABA-B^//ABA_B+//ABA-B/A-/
     "name": "hilbert3d"
   },
   {
-    "i": "3",
-    "r": """
+    "i": "2",
+    "r": r"""
 A: B-F+CFC+F-D&F^D-F+&&CFC+F+B//;
 B: A&F^CFB^F^D^^-F-D^|F^B|FC^F^A//;
 C: |D^|F^B-F+C^F^A&&FA&F^C+F+B^F^D//;
@@ -62,7 +75,7 @@ D: |CFB-F+B|FA&F^A&&FB-F+B|FC//
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "hilbert"
+    "name": "hilbert3d-2"
   },
   {
     "i": "4",
