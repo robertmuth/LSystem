@@ -291,7 +291,10 @@ class State {
 abstract class Plotter {
   void Init(State s);
   void Draw(VM.Vector3 src, VM.Vector3 dst, VM.Quaternion dir, State s);
+  void PolyPoint(VM.Vector3 dst, State s);
   void Fini(State s);
+  void PolyStart(State s);
+  void PolyEnd(State s);
 }
 
 String str(VM.Vector3 v) {
@@ -320,71 +323,79 @@ void applyQuaternion(VM.Vector3 v, VM.Quaternion q) {
   v.z = vz + qw * tz + qx * ty - qy * tx;
 }
 
-void RenderOne(Sym s, List<State> stack, Plotter plotter) {
-  switch (s.kind) {
-    case Kind.SET_CONST:
-    case Kind.ADD_CONST:
-    case Kind.YAW_ADD_CONST:
-    case Kind.ROLL_ADD_CONST:
-    case Kind.PITCH_ADD_CONST:
-    case Kind.MUL_CONST:
-    case Kind.SUB:
-    case Kind.ADD:
-    case Kind.YAW_SUB:
-    case Kind.YAW_ADD:
-    case Kind.ROLL_SUB:
-    case Kind.ROLL_ADD:
-    case Kind.PITCH_SUB:
-    case Kind.PITCH_ADD:
-    case Kind.MUL:
-    case Kind.GROW:
-    case Kind.SHRINK:
-      stack.last.Update(s);
-    //
-    case Kind.STACK_PUSH:
-      print("@@@@@ PUSH");
-      stack.add(stack.last.Clone());
-    case Kind.STACK_POP:
-      print("@@@@@ POP");
-      stack.removeLast();
-    case Kind.POLY_START:
-      assert(false);
-    case Kind.POLY_END:
-      assert(false);
-    case Kind.SYMBOL:
-      var state = stack.last;
-      VM.Vector3 src = state.get(xPos);
-      double step_size = state.get(xStepSize);
-      VM.Quaternion dir = state.get(xDir);
-      VM.Vector3 dst = VM.Vector3(0, step_size, 0);
-      //applyQuaternion(dst, dir);
-      dst.applyQuaternion(dir);
-      // dir.rotate(dst);
-      // print("Rule dir: ${qstr(dir)} ${str(dst)}");
-      dst.add(src);
-      if (s.text != "f") {
-        print("@@@@@ DRAW");
-        plotter.Draw(src, dst, dir, stack.last);
-      }
-      state.set(xPos, dst);
-    case Kind.COLOR_NEXT:
-    // TODO: add color handling
-    case Kind.INVALID:
-      assert(false);
-  }
-}
-
 void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
   List<State> stack = [State()..Init()];
   for (SymIndex i in startup) {
     Sym s = Sym.GetSymbolForIndex(i);
-    RenderOne(s, stack, plotter);
+    stack.last.Update(s);
   }
 
+  bool in_polygon = false;
   plotter.Init(stack.last);
   for (SymIndex i in main) {
     Sym s = Sym.GetSymbolForIndex(i);
-    RenderOne(s, stack, plotter);
+    switch (s.kind) {
+      case Kind.SYMBOL:
+        var state = stack.last;
+        VM.Vector3 src = state.get(xPos);
+        double step_size = state.get(xStepSize);
+        VM.Quaternion dir = state.get(xDir);
+        VM.Vector3 dst = VM.Vector3(0, step_size, 0);
+        //applyQuaternion(dst, dir);
+        dst.applyQuaternion(dir);
+        // dir.rotate(dst);
+        // print("Rule dir: ${qstr(dir)} ${str(dst)}");
+        dst.add(src);
+        if (in_polygon) {
+          if (s.text != "G") {
+            plotter.PolyPoint(dst, stack.last);
+          }
+        } else {
+          if (s.text != "f") {
+            print("@@@@@ DRAW");
+            plotter.Draw(src, dst, dir, stack.last);
+          }
+        }
+        state.set(xPos, dst);
+
+      case Kind.POLY_START:
+        print("@@@@@ POLY-START");
+        assert(!in_polygon);
+        in_polygon = true;
+        plotter.PolyStart(stack.last);
+      case Kind.POLY_END:
+        print("@@@@@ POLY-END");
+        assert(in_polygon);
+        in_polygon = false;
+        plotter.PolyEnd(stack.last);
+      case Kind.STACK_PUSH:
+        print("@@@@@ PUSH");
+        stack.add(stack.last.Clone());
+      case Kind.STACK_POP:
+        print("@@@@@ POP");
+        stack.removeLast();
+      case Kind.INVALID:
+      case Kind.COLOR_NEXT:
+        assert(false);
+      case Kind.SET_CONST:
+      case Kind.ADD_CONST:
+      case Kind.YAW_ADD_CONST:
+      case Kind.ROLL_ADD_CONST:
+      case Kind.PITCH_ADD_CONST:
+      case Kind.MUL_CONST:
+      case Kind.SUB:
+      case Kind.ADD:
+      case Kind.YAW_SUB:
+      case Kind.YAW_ADD:
+      case Kind.ROLL_SUB:
+      case Kind.ROLL_ADD:
+      case Kind.PITCH_SUB:
+      case Kind.PITCH_ADD:
+      case Kind.MUL:
+      case Kind.GROW:
+      case Kind.SHRINK:
+        stack.last.Update(s);
+    }
   }
   plotter.Fini(stack.last);
 }

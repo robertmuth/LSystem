@@ -56,7 +56,24 @@ class ModelExtractor extends rule.Plotter {
   }
 
   @override
-  void Fini(rule.State s) {}
+  void Fini(rule.State s) {
+    //
+  }
+
+  @override
+  void PolyStart(rule.State s) {
+    //
+  }
+
+  @override
+  void PolyEnd(rule.State s) {
+    //
+  }
+
+  @override
+  void PolyPoint(VM.Vector3 dst, rule.State s) {
+    //
+  }
 
   void UpdateScene(Scene scene, RenderProgram prog) {
     var start = DateTime.now();

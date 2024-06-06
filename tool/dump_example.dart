@@ -29,13 +29,28 @@ class DebugPlotter extends rule.Plotter {
 
   @override
   void Draw(VM.Vector3 src, VM.Vector3 dst, VM.Quaternion dir, rule.State s) {
-    print("DRAW ${rule.str(src)} -> ${rule.str(dst)}");
+    print("Draw ${rule.str(src)} -> ${rule.str(dst)}");
     TestMe(dir);
   }
 
   @override
   void Fini(rule.State s) {
     print("Fini: ${s}");
+  }
+
+  @override
+  void PolyStart(rule.State s) {
+    print("PolyStart: ${s}");
+  }
+
+  @override
+  void PolyEnd(rule.State s) {
+    print("PolyEnd: ${s}");
+  }
+
+  @override
+  void PolyPoint(VM.Vector3 dst, rule.State s) {
+    print("PolyPoint ${rule.str(dst)}");
   }
 }
 

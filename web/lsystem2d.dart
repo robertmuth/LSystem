@@ -23,6 +23,7 @@ num GetRandom(Math.Random rng, num a, num b) {
 class Canvas2dPlotter extends rule.Plotter {
   CanvasElement _canvas;
   VM.Vector3 _last = VM.Vector3.zero();
+  List<List<VM.Vector3>> _polygons = [];
 
   Canvas2dPlotter(this._canvas);
   @override
@@ -52,6 +53,34 @@ class Canvas2dPlotter extends rule.Plotter {
   void Fini(rule.State s) {
     var context = _canvas.context2D;
     context..stroke();
+    for (var poly in _polygons) {
+      context
+        ..moveTo(poly[0].x, poly[0].y)
+        ..lineWidth = s.get(rule.xWidth)
+        ..strokeStyle = s.get(rule.xLineColor)
+        ..fillStyle = s.get(rule.xLineColor)
+        ..beginPath();
+      for (var point in poly) {
+        context.lineTo(point.x, point.y);
+      }
+      context.closePath();
+      context..fill();
+    }
+  }
+
+  @override
+  void PolyStart(rule.State s) {
+    _polygons.add([]);
+  }
+
+  @override
+  void PolyEnd(rule.State s) {
+    // do nothing
+  }
+
+  @override
+  void PolyPoint(VM.Vector3 dst, rule.State s) {
+    _polygons.last.add(dst);
   }
 }
 
