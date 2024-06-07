@@ -112,7 +112,7 @@ class LSystem {
     _width = _canvas.width!;
     _height = _canvas.height!;
 
-    log.LogInfo("lsystem: ${_width}x${_height}");
+    log.LogInfo("lsystem: ${_width}x${_height} ${_currentCycle}");
   }
 
   void Init(Map<String, String> desc) {

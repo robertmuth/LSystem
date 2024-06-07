@@ -29,7 +29,7 @@ class ModelExtractor extends rule.Plotter {
   //final Material _mat1 = Material("mat1")..SetUniform(uColor, ColorBlue);
   final Material _mat2 = Material("mat2")..SetUniform(uColor, ColorRed);
   //final Material _mat3 = Material("mat3")..SetUniform(uColor, ColorGreen);
-  final Material _mat4 = Material("mat4")..SetUniform(uColor, ColorCyan);
+  //final Material _mat4 = Material("mat4")..SetUniform(uColor, ColorCyan);
   final Material _mat5 = Material("plane")..SetUniform(uColor, ColorGray8);
   GeometryBuilder _gb = GeometryBuilder();
   List<VM.Vector3> _polygon = [];
@@ -136,11 +136,10 @@ class LSystem {
     _pattern_prefix.addAll(
         lsys2d.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
 
-    /*
-    _pattern_prefix.add(rule.Sym.SetParam(rule.pWidth, _options.GetDouble("lineWidth")));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.pLineColor, _options.Get("lineColor")));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.pBackgroundColor, _options.Get("backgroundColor")));
-   */
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, _options.GetDouble("lineWidth")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, _options.Get("lineColor")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, _options.Get("backgroundColor")));
+
     //
 
     print(rule.StringifySymIndexList(_pattern_prefix));
@@ -254,10 +253,12 @@ void main() {
     ++count;
   }
 
+/*
   final int w = HTML.document.body!.clientWidth;
   final int h = HTML.document.body!.clientHeight;
   final int w2 = HTML.window.innerWidth!;
   final int h2 = HTML.window.innerHeight!;
+  */
 /*
   for (var example in lsys2d_examples.kExamples) {
     print(example["name"]!);
