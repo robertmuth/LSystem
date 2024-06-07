@@ -47,13 +47,17 @@ class ModelExtractor extends rule.Plotter {
     GeometryBuilder cylinder = CylinderGeometry(1.0, 1.0, len, 10, true);
 
     _gb.MergeAndTakeOwnership2(cylinder, dir, offset);
-    //
+    // cube at the end
     VM.Quaternion no_rot = VM.Quaternion.identity();
-    GeometryBuilder cube = CubeGeometry(x: 2.0, y: 2.0, z: 2.0);
-    _gb.MergeAndTakeOwnership2(cube, no_rot, dst);
-    //
-    GeometryBuilder cube2 = CubeGeometry(x: 1.5, y: 1.5, z: 1.5);
-    _gb.MergeAndTakeOwnership2(cube2, no_rot, offset);
+    if (false) {
+      GeometryBuilder cube = CubeGeometry(x: 2.0, y: 2.0, z: 2.0);
+      _gb.MergeAndTakeOwnership2(cube, no_rot, dst);
+    }
+    // smaller cube in the middle of the cylinder
+    if (false) {
+      GeometryBuilder cube2 = CubeGeometry(x: 1.5, y: 1.5, z: 1.5);
+      _gb.MergeAndTakeOwnership2(cube2, no_rot, offset);
+    }
   }
 
   @override
