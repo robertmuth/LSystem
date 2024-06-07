@@ -10,6 +10,52 @@
 // "offsets" - optional triple "offset" (x, y, rotation)
 List<Map<String, String>> kExamples = [
   {
+    "i": "5",
+// page 27
+    "r": r"""
+$plant: $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
+$internode: F $seg [// & & $leaf] [// ^^ $leaf] F $seg;
+$seg: $seg F $seg;
+$leaf: [' { +f-ff-f+ | +f-ff-f } ];
+$flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
+$pedicel: FF;
+$wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
+""",
+    "p.size": "5,0.01",
+    "p.angle": "18.0,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "plant-with-flowers"
+  },
+  {
+    "i": "5",
+    "r": r"""
+A: [&FL!A]/////'[&FL!A]///////'[&FL!A];
+F: S ///// F;
+S: F L;
+L: ['''^^{-f+f+f-|-f+f+f}]
+""",
+    "p.size": "10,0.01",
+    "p.angle": "22.5,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "bush-with-leaves"
+  },
+  {
+    "i": "1",
+    "r": r"""
+L: {-F+F+F-|-F+F+F}
+""",
+    "p.size": "10,0.01",
+    "p.angle": "22.5,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "leaf"
+  },
+  {
     "i": "12",
     "r": r"""
 L: EEEA;
@@ -61,21 +107,6 @@ A: ^\AB^\ABA-B^//ABA_B+//ABA-B/A-/
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
     "name": "hilbert3d"
-  },
-  {
-    "i": "2",
-    "r": r"""
-A: B-F+CFC+F-D&F^D-F+&&CFC+F+B//;
-B: A&F^CFB^F^D^^-F-D^|F^B|FC^F^A//;
-C: |D^|F^B-F+C^F^A&&FA&F^C+F+B^F^D//;
-D: |CFB-F+B|FA&F^A&&FB-F+B|FC//
-""",
-    "p.size": "10,0.01",
-    "p.angle": "90,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "hilbert3d-2"
   },
   {
     "i": "4",

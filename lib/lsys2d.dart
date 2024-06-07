@@ -111,9 +111,18 @@ rule.SymIndex TranslateToSym(String s) {
     case ')':
       return rule.Sym.Param(rule.Kind.GROW, xAngleStep, xAngleGrowth);
     default:
+      print("unrecognized char ${s}");
+      assert(false);
       //assert("a" <= s && s <= "z");
       return rule.Sym.Symbol(s);
   }
+}
+
+bool IsIdChar(String s) {
+  if ("a".compareTo(s) <= 0 && s.compareTo("z") <= 0) return true;
+  if ("A".compareTo(s) <= 0 && s.compareTo("Z") <= 0) return true;
+
+  return false;
 }
 
 // input looks like: "F[+FF][-FF]F[-F][+F]F"
@@ -122,12 +131,33 @@ rule.SymIndex TranslateToSym(String s) {
 // "F", "[+", "F", "F", "][", ...
 List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
   List<rule.SymIndex> out = [];
+
+  List<String> id_str = [];
+  bool in_id = false;
+
   for (int i = 0; i < s.length; i++) {
     String c = s[i];
+
+    if (IsIdChar(c)) {
+      if (in_id) {
+        id_str.add(c);
+      } else {
+        out.add(rule.Sym.Symbol(c));
+      }
+      continue;
+    }
+
+    if (in_id) {
+      in_id = false;
+      out.add(rule.Sym.Symbol(id_str.join("")));
+    }
+
     if (c == " ") {
       continue;
-    } else if (symbols.contains(c)) {
-      out.add(rule.Sym.Symbol(c));
+    } else if (c == "\$") {
+      assert(!in_id);
+      in_id = true;
+      id_str = [c];
     } else {
       out.add(TranslateToSym(c));
     }
@@ -147,6 +177,7 @@ Map<String, List<rule.Rule>> ParseRules(List<String> rule_strs) {
     List<String> part = r.split(":");
     assert(part.length == 2);
     var head = part[0].trim();
+    assert(head.length == 1 || head.startsWith("\$"));
     var expansion = ParseRightSideOfProduction(part[1].trim(), symbols);
     out[head]!.add(rule.Rule(head, expansion));
   }
