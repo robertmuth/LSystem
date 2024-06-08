@@ -288,13 +288,20 @@ class State {
   }
 }
 
+// Interface to render a Symbol String
+// Protocol is:
+// Init [Draw | [PolyStart PolyPoint+ PolyEnd]]+ Fini
 abstract class Plotter {
   void Init(State s);
+  // Draw a line
   void Draw(VM.Vector3 src, VM.Vector3 dst, VM.Quaternion dir, State s);
-  void PolyPoint(VM.Vector3 dst, State s);
-  void Fini(State s);
+  // Start of a surface
   void PolyStart(State s);
+  // Point of a surface
+  void PolyPoint(VM.Vector3 dst, State s);
+  // End of a surface
   void PolyEnd(State s);
+  void Fini(State s);
 }
 
 String str(VM.Vector3 v) {
@@ -323,6 +330,7 @@ void applyQuaternion(VM.Vector3 v, VM.Quaternion q) {
   v.z = vz + qw * tz + qx * ty - qy * tx;
 }
 
+// Render a Symbol String (derived from an L-System) using the Plotter
 void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
   List<State> stack = [State()..Init()];
   for (SymIndex i in startup) {
@@ -336,6 +344,9 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
     Sym s = Sym.GetSymbolForIndex(i);
     switch (s.kind) {
       case Kind.SYMBOL:
+        if (s.text.length > 1) {
+          continue;
+        }
         var state = stack.last;
         VM.Vector3 src = state.get(xPos);
         double step_size = state.get(xStepSize);
@@ -357,7 +368,6 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
           }
         }
         state.set(xPos, dst);
-
       case Kind.POLY_START:
         print("@@@@@ POLY-START");
         assert(!in_polygon);
@@ -375,8 +385,9 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         print("@@@@@ POP");
         stack.removeLast();
       case Kind.INVALID:
-      case Kind.COLOR_NEXT:
         assert(false);
+      case Kind.COLOR_NEXT:
+        break;
       case Kind.SET_CONST:
       case Kind.ADD_CONST:
       case Kind.YAW_ADD_CONST:
