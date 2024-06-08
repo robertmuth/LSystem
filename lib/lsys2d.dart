@@ -119,6 +119,7 @@ rule.SymIndex TranslateToSym(String s) {
 }
 
 bool IsIdChar(String s) {
+  if (s == ".") return true;
   if ("a".compareTo(s) <= 0 && s.compareTo("z") <= 0) return true;
   if ("A".compareTo(s) <= 0 && s.compareTo("Z") <= 0) return true;
 
@@ -161,6 +162,10 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
     } else {
       out.add(TranslateToSym(c));
     }
+  }
+  if (in_id) {
+    in_id = false;
+    out.add(rule.Sym.Symbol(id_str.join("")));
   }
   return out;
 }

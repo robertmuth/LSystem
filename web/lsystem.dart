@@ -134,7 +134,8 @@ class LSystem {
     }
 
     _info = rule.PatternInfo(_pattern);
-
+    print(_info);
+    print(_pattern);
     //
 
     _pattern_prefix.addAll(

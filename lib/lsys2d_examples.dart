@@ -10,6 +10,34 @@
 // "offsets" - optional triple "offset" (x, y, rotation)
 List<Map<String, String>> kExamples = [
   {
+    "i": "2",
+    "r": r"""
+$start: FF $flower;
+$flower: {./[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]}
+""",
+    "p.size": "10,0.01",
+    "p.angle": "36,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "cone-flower-10leaves"
+  },
+  {
+    "i": "3",
+// flower from page 27
+    "r": r"""
+$start: FF $flower;
+$flower: / $wedge //// $wedge //// $wedge //// $wedge //// $wedge;
+$wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
+""",
+    "p.size": "5,0.01",
+    "p.angle": "18.0,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "plant-with-flowers"
+  },
+  {
     "i": "5",
 // page 27
     "r": r"""

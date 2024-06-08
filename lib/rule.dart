@@ -349,6 +349,12 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         }
         var state = stack.last;
         VM.Vector3 src = state.get(xPos);
+        if (s.text == ".") {
+          assert(in_polygon);
+          plotter.PolyPoint(src, state);
+          continue;
+        }
+
         double step_size = state.get(xStepSize);
         VM.Quaternion dir = state.get(xDir);
         VM.Vector3 dst = VM.Vector3(0, step_size, 0);
