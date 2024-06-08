@@ -334,8 +334,12 @@ void main() {
     animateLSystem(elapsed, scenePerspective, prog);
     orbit.animate(elapsed);
     phasePerspective.Draw();
+    String extra = gActiveLSystem!.Info();
+
+    UpdateFrameCount(_lastTimeMs, gFps, extra);
 
     HTML.window.animationFrame.then(animate);
+
     // fps.UpdateFrameCount(_lastTimeMs);
   }
 
