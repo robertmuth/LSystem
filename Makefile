@@ -1,20 +1,19 @@
 export PATH := $(PATH):$(HOME)/.pub-cache/bin:.
-PUB=/usr/lib/dart/bin/pub
 DART=dart
 
 
 init:
-	{PUB} global activate webdev
+	${DART} pub global activate webdev
 
 release:
 	webdev build --output web:build
 
 
 debug:
-	${PUB} build --mode debug
+	${DART} pub build --mode debug
 
 get:
-	${PUB} get
+	${DART} pub get
 
 serve:
 	webdev serve
