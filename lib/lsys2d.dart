@@ -141,7 +141,16 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
 
   for (int i = 0; i < s.length; i++) {
     String c = s[i];
-
+    if (mode == ParseMode.ID) {
+      if (IsIdChar(c)) {
+        name += c;
+        continue;
+      } else {
+        out.add(rule.Sym.Symbol(name));
+        mode = ParseMode.REGULAR;
+        // falls through
+      }
+    }
     switch (mode) {
       case ParseMode.REGULAR:
         if (c == " ") {
@@ -159,12 +168,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
           out.add(TranslateToSym(c));
         }
       case ParseMode.ID:
-        if (IsIdChar(c)) {
-          name += c;
-        } else {
-          out.add(rule.Sym.Symbol(name));
-          mode = ParseMode.REGULAR;
-        }
+        assert(false);
       case ParseMode.ESCAPE:
         if (c == ")") {
           if (escape[0] == "setrad") {
