@@ -40,7 +40,6 @@ Set<String> kValid = {
   "|", // increment [angle] by 180;
 };
 
-final int xAngleStep = rule.ParamDescriptor.Register("angle_step", () => 0.0, (x) => x);
 final int xAngleGrowth = rule.ParamDescriptor.Register("angle_growth", () => 0.0, (x) => x);
 final int xStepGrowth = rule.ParamDescriptor.Register("step_growth", () => 0.0, (x) => x);
 
@@ -76,22 +75,22 @@ List<rule.SymIndex> ExtractAxiom(List<String> rules) {
 rule.SymIndex TranslateToSym(String s) {
   switch (s) {
     case "!":
-      return rule.Sym.Param(rule.Kind.MUL_CONST, xAngleStep, -1.0);
+      return rule.Sym.Param(rule.Kind.MUL_CONST, rule.xAngleStep, -1.0);
     case "|":
       return rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.xDir, Math.pi);
     case "+":
-      return rule.Sym.Param(rule.Kind.YAW_ADD, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.YAW_ADD, rule.xDir, rule.xAngleStep);
     case "-":
-      return rule.Sym.Param(rule.Kind.YAW_SUB, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.YAW_SUB, rule.xDir, rule.xAngleStep);
     case "^":
-      return rule.Sym.Param(rule.Kind.PITCH_ADD, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.PITCH_ADD, rule.xDir, rule.xAngleStep);
     case "_":
     case "&":
-      return rule.Sym.Param(rule.Kind.PITCH_SUB, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.PITCH_SUB, rule.xDir, rule.xAngleStep);
     case "/":
-      return rule.Sym.Param(rule.Kind.ROLL_ADD, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.ROLL_ADD, rule.xDir, rule.xAngleStep);
     case r"\":
-      return rule.Sym.Param(rule.Kind.ROLL_SUB, rule.xDir, xAngleStep);
+      return rule.Sym.Param(rule.Kind.ROLL_SUB, rule.xDir, rule.xAngleStep);
     case "[":
       return rule.Sym.Simple(rule.Kind.STACK_PUSH);
     case "]":
@@ -107,9 +106,9 @@ rule.SymIndex TranslateToSym(String s) {
     case '>':
       return rule.Sym.Param(rule.Kind.SHRINK, rule.xStepSize, xStepGrowth);
     case '(':
-      return rule.Sym.Param(rule.Kind.SHRINK, xAngleStep, xAngleGrowth);
+      return rule.Sym.Param(rule.Kind.SHRINK, rule.xAngleStep, xAngleGrowth);
     case ')':
-      return rule.Sym.Param(rule.Kind.GROW, xAngleStep, xAngleGrowth);
+      return rule.Sym.Param(rule.Kind.GROW, rule.xAngleStep, xAngleGrowth);
     default:
       print("unrecognized char ${s}");
       assert(false);
@@ -126,6 +125,8 @@ bool IsIdChar(String s) {
   return false;
 }
 
+enum ParseMode { REGULAR, ID, ESCAPE }
+
 // input looks like: "F[+FF][-FF]F[-F][+F]F"
 // where symbols is {L, F}
 // output is a partition of the string where each symbol is isolated, e.g.:
@@ -133,39 +134,56 @@ bool IsIdChar(String s) {
 List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
   List<rule.SymIndex> out = [];
 
-  List<String> id_str = [];
-  bool in_id = false;
+  String name = "";
+  List<String> escape = [];
+
+  ParseMode mode = ParseMode.REGULAR;
 
   for (int i = 0; i < s.length; i++) {
     String c = s[i];
 
-    if (IsIdChar(c)) {
-      if (in_id) {
-        id_str.add(c);
-      } else {
-        out.add(rule.Sym.Symbol(c));
-      }
-      continue;
-    }
-
-    if (in_id) {
-      in_id = false;
-      out.add(rule.Sym.Symbol(id_str.join("")));
-    }
-
-    if (c == " ") {
-      continue;
-    } else if (c == "\$") {
-      assert(!in_id);
-      in_id = true;
-      id_str = [c];
-    } else {
-      out.add(TranslateToSym(c));
+    switch (mode) {
+      case ParseMode.REGULAR:
+        if (c == " ") {
+          break;
+        } else if (c == "\$") {
+          mode = ParseMode.ID;
+          name = c;
+        } else if (c == "@") {
+          mode = ParseMode.ESCAPE;
+          escape.clear();
+          escape.add("");
+        } else if (IsIdChar(c)) {
+          out.add(rule.Sym.Symbol(c));
+        } else {
+          out.add(TranslateToSym(c));
+        }
+      case ParseMode.ID:
+        if (IsIdChar(c)) {
+          name += c;
+        } else {
+          out.add(rule.Sym.Symbol(name));
+          mode = ParseMode.REGULAR;
+        }
+      case ParseMode.ESCAPE:
+        if (c == ")") {
+          if (escape[0] == "setrad") {
+            int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
+            double val = double.parse(escape[2]) / 180.0 * Math.pi;
+            out.add(rule.Sym.SetParam(index, val));
+          } else {
+            assert(false);
+          }
+          mode = ParseMode.REGULAR;
+        } else if (c == "(" || c == ",") {
+          escape.add("");
+        } else {
+          escape.last += c;
+        }
     }
   }
-  if (in_id) {
-    in_id = false;
-    out.add(rule.Sym.Symbol(id_str.join("")));
+  if (mode == ParseMode.ID) {
+    out.add(rule.Sym.Symbol(name));
   }
   return out;
 }
@@ -227,7 +245,7 @@ List<rule.SymIndex> InitPrefix(Map<String, String> desc, VM.Vector3 pos, VM.Quat
   //
   var angle = desc["p.angle"]!.split(",");
   assert(angle.length >= 1);
-  out.add(rule.Sym.SetParam(xAngleStep, double.parse(angle[0]) / 180.0 * Math.pi));
+  out.add(rule.Sym.SetParam(rule.xAngleStep, double.parse(angle[0]) / 180.0 * Math.pi));
   double angle_growth = angle.length > 1 ? double.parse(angle[1]) : 0.05;
   out.add(rule.Sym.SetParam(xAngleGrowth, angle_growth));
   //

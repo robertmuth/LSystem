@@ -46,16 +46,29 @@ class ParamDescriptor {
   ParamDescriptor(this.num, this.name, this.ctor, this.cloner);
 
   static int Register(String name, dynamic Function() ctor, dynamic cloner) {
+    print("Register parameter [${name}]");
     var d = ParamDescriptor(gNumDescriptors, name, ctor, cloner);
     ++gNumDescriptors;
     gAllDescriptors.add(d);
     return d.num;
+  }
+
+  static GetIndexByName(String name) {
+    for (int i = 0; i < gAllDescriptors.length; ++i) {
+      if (name == gAllDescriptors[i].name) {
+        return i;
+      }
+    }
+    print(">>>>>>>>>>>>>>>>> [${name}]");
+    assert(false, "unknown parameter [${name}]");
+    return -1;
   }
 }
 
 final int xPos = ParamDescriptor.Register("#pos", () => VM.Vector3.zero(), (x) => x.clone());
 final int xDir = ParamDescriptor.Register("#dir", () => VM.Quaternion.identity(), (x) => x.clone());
 final int xStepSize = ParamDescriptor.Register("#stepSize", () => 0.0, (x) => x);
+final int xAngleStep = ParamDescriptor.Register("#angleStep", () => 0.0, (x) => x);
 final int xWidth = ParamDescriptor.Register("#width", () => 0.0, (x) => x);
 final int xBackgroundColor = ParamDescriptor.Register("#bgColor", () => "", (x) => x);
 final int xLineColor = ParamDescriptor.Register("#lineColor", () => "", (x) => x);
@@ -222,7 +235,7 @@ class State {
   }
 
   void Update(Sym sym) {
-    print("@@@@@ UPDATE ${sym}");
+    // print("@@@@@ UPDATE ${sym}");
     dynamic val;
     switch (sym.kind) {
       case Kind.ADD_CONST:
@@ -245,39 +258,38 @@ class State {
         val = _state[sym.field]! * (1.0 - _state[sym.parameter]!);
       //
       case Kind.YAW_ADD:
-        print("YAW_ADD ${_state[sym.parameter]!}");
+        // print("YAW_ADD ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_z, _state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.YAW_ADD_CONST:
         _tmp_rot.setAxisAngle(_axis_z, sym.parameter as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.YAW_SUB:
-        print("YAW_SUB ${_state[sym.parameter]!}");
+        // print("YAW_SUB ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_z, -_state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       //
       case Kind.ROLL_ADD:
-        print("ROLL_ADD ${_state[sym.parameter]!}");
+        // print("ROLL_ADD ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_y, _state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.ROLL_ADD_CONST:
         _tmp_rot.setAxisAngle(_axis_y, sym.parameter as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.ROLL_SUB:
-        print("ROLL_SUB ${_state[sym.parameter]!}");
+        // print("ROLL_SUB ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_y, -_state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       //
       case Kind.PITCH_ADD:
-        print("PITCH_ADD ${_state[sym.parameter]!}");
+        // print("PITCH_ADD ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_x, _state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.PITCH_ADD_CONST:
         _tmp_rot.setAxisAngle(_axis_x, sym.parameter as double);
-        // _last_axis.setEuler(sym.parameter as double, 0, 0);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       case Kind.PITCH_SUB:
-        print("PITCH_SUB ${_state[sym.parameter]!}");
+        // print("PITCH_SUB ${_state[sym.parameter]!}");
         _tmp_rot.setAxisAngle(_axis_x, -_state[sym.parameter]! as double);
         val = (_state[sym.field]! as VM.Quaternion) * _tmp_rot;
       default:
@@ -378,12 +390,14 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         print("@@@@@ POLY-START");
         assert(!in_polygon);
         in_polygon = true;
+        stack.add(stack.last.Clone());
         plotter.PolyStart(stack.last);
       case Kind.POLY_END:
         print("@@@@@ POLY-END");
         assert(in_polygon);
         in_polygon = false;
         plotter.PolyEnd(stack.last);
+        stack.removeLast();
       case Kind.STACK_PUSH:
         print("@@@@@ PUSH");
         stack.add(stack.last.Clone());
