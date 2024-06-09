@@ -10,10 +10,50 @@
 // "offsets" - optional triple "offset" (x, y, rotation)
 List<Map<String, String>> kExamples = [
   {
+    "i": "3",
+    "r": """
+L: [S]^[S]+[S];
+S: [FFFFFF^F^F^F^F];
+F: F
+""",
+    "p.size": "10,0.01",
+    "p.angle": "90,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "axes"
+  },
+  {
+    "i": "2",
+    "r": r"""
+$start: FF $leaf;
+$leaf: {@setrad(#angleStep,30)- F ++++ F ++++ F}
+""",
+    "p.size": "10,0.01",
+    "p.angle": "30,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "simple leaf"
+  },
+  {
     "i": "2",
     "r": r"""
 $start: FF $flower;
-$flower: {./[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]}
+$flower: {@setrad(#angleStep,72)./[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
+""",
+    "p.size": "10,0.01",
+    "p.angle": "72,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "cone-flower-5leaves11"
+  },
+  {
+    "i": "2",
+    "r": r"""
+$start: FF $flower;
+$flower: {@setrad(#angleStep,36)./[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]}
 """,
     "p.size": "10,0.01",
     "p.angle": "36,0.05",
@@ -35,7 +75,7 @@ $wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "plant-with-flowers"
+    "name": "flower2"
   },
   {
     "i": "5",
@@ -109,20 +149,6 @@ A: /A[++A]-\A[--A]+//A
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
     "name": "vines"
-  },
-  {
-    "i": "3",
-    "r": """
-L: [S]^[S]+[S];
-S: [FFFFFF^F^F^F^F];
-F: F
-""",
-    "p.size": "10,0.01",
-    "p.angle": "90,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "axes"
   },
   {
     "i": "3",
