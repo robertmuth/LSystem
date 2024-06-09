@@ -33,8 +33,12 @@ class ModelExtractor extends rule.Plotter {
   final Material _mat5 = Material("plane")..SetUniform(uColor, ColorGray8);
   GeometryBuilder _gb = GeometryBuilder();
   List<VM.Vector3> _polygon = [];
+  List<VM.Vector3> _polygon_color = [];
 
-  ModelExtractor();
+  ModelExtractor() {
+    _gb.EnableAttribute(aColor);
+  }
+
   @override
   void Init(rule.State s) {}
 
@@ -45,7 +49,9 @@ class ModelExtractor extends rule.Plotter {
     VM.Vector3.mix(src, dst, 0.5, offset);
     print("add cylinder: ${rule.str(src)} -> ${rule.str(dst)}  dir: ${rule.str(dst - src)}");
     GeometryBuilder cylinder = CylinderGeometry(1.0, 1.0, len, 10, true);
-
+    cylinder.EnableAttribute(aColor);
+    cylinder.AddAttributesVector3TakeOwnership(
+        aColor, List.filled(cylinder.vertices.length, ColorGreen));
     _gb.MergeAndTakeOwnership2(cylinder, dir, offset);
     // cube at the end
     /*
@@ -70,12 +76,14 @@ class ModelExtractor extends rule.Plotter {
   @override
   void PolyStart(rule.State s) {
     _polygon.clear();
+    _polygon_color.clear();
   }
 
   @override
   void PolyEnd(rule.State s) {
     assert(_polygon.length >= 3);
     int offset = _gb.AddVerticesTakeOwnership(_polygon);
+    _gb.AddAttributesVector3TakeOwnership(aColor, _polygon_color);
     for (int i = 1; i < _polygon.length - 1; ++i) {
       _gb.AddFace3(offset + 0, offset + i, offset + i + 1);
     }
@@ -84,13 +92,17 @@ class ModelExtractor extends rule.Plotter {
   @override
   void PolyPoint(VM.Vector3 dst, rule.State s) {
     _polygon.add(dst);
+    _polygon_color.add(ColorBlue);
   }
 
   void UpdateScene(Scene scene, RenderProgram prog) {
     var start = DateTime.now();
     scene.removeAll();
-    scene.add(
-        Node("cube", ShapeCube(prog, x: 20.0, y: 0.1, z: 20.0), _mat5)..setPos(0.0, -10.0, 0.0));
+    var ground = CubeGeometry(x: 20.0, y: 0.4, z: 20.0);
+    ground.EnableAttribute(aColor);
+    ground.AddAttributesVector3TakeOwnership(aColor, List.filled(ground.vertices.length, ColorRed));
+    scene.add(Node("cube", GeometryBuilderToMeshData("ground", prog, ground), _mat5)
+      ..setPos(0.0, -10.0, 0.0));
     scene.add(Node("tree", GeometryBuilderToMeshData("tree", prog, _gb), _mat2));
     var stop = DateTime.now();
     print("3d mesh creation took ${stop.difference(start)}");
@@ -303,7 +315,7 @@ void main() {
   OrbitCamera orbit = OrbitCamera(700.0, 10.0, 0.0, gCanvas);
 
   RenderProgram prog =
-      RenderProgram("textured", cgl, solidColorVertexShader, solidColorFragmentShader);
+      RenderProgram("textured", cgl, multiColorVertexShader, multiColorFragmentShader);
 
   Perspective perspective = Perspective(orbit, 0.1, 1000.0);
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
