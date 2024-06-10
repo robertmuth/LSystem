@@ -396,14 +396,12 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         // print("@@@@@ POLY-START");
         assert(!in_polygon);
         in_polygon = true;
-        stack.add(stack.last.Clone());
         plotter.PolyStart(stack.last);
       case Kind.POLY_END:
         // print("@@@@@ POLY-END");
         assert(in_polygon);
         in_polygon = false;
         plotter.PolyEnd(stack.last);
-        stack.removeLast();
       case Kind.STACK_PUSH:
         // print("@@@@@ PUSH");
         stack.add(stack.last.Clone());

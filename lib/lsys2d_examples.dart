@@ -23,33 +23,31 @@ $axis: [FFFFFF^F^F^F^F]
     "offsets": "0,0,0",
     "name": "axes"
   },
-  /*
   {
     "i": "18",
     "r": r"""
-$start: [|FFFFFFFFFFF]P/////////'P/////////'P/////////'P;
-P: [&G[ccA][ccB][a][b]];
-G: tFtFtFtFtFtFtFtFtFtFtFtFtF;
-A: [+A{.].C.};
-B: [-B{.].C.};
-C: tfC;
-a: [+a]d;
-b: [-b]d;
-d: = tFd
+$start: [|FFFFFFFFFFF]$leaf;
+$leaf: @setcol(#080) [&G[$c$c$A][$c$c$B][$a][$b]];
+$G: tFtFtFtFtFtFtFtFtFtFtFtFtF;
+$A: [@setcol(#080) + $A {. ] @setcol(#0f0) . $C .};
+$B: [@setcol(#080) - $B {. ] @setcol(#0f0) . $C .};
+$C: tf$C;
+$a: [+$a]$d;
+$b: [-$b]$d;
+$d: tF$d
 """,
-    "p.size": "10,0.01",
+    "p.size": "10,0.1",
     "p.angle": "10,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
     "name": "leaves"
   },
-  */
   {
     "i": "2",
     "r": r"""
 $start: @setcol(#080)  FF $leaf;
-$leaf: {@setcol(#0f0)  @setrad(#angleStep,30)- F ++++ F ++++ F}
+$leaf: [@setcol(#0f0) {@setrad(#angleStep,30)- F ++++ F ++++ F}]
 """,
     "p.size": "10,0.01",
     "p.angle": "30,0.05",
@@ -62,7 +60,7 @@ $leaf: {@setcol(#0f0)  @setrad(#angleStep,30)- F ++++ F ++++ F}
     "i": "2",
     "r": r"""
 $start: @setcol(#080) FF $flower;
-$flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
+$flower:[@setcol(#fff) @setrad(#angleStep,72) {. @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}]
 """,
     "p.size": "10,0.01",
     "p.angle": "72,0.05",
@@ -75,10 +73,10 @@ $flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[
     "i": "2",
     "r": r"""
 $start: @setcol(#080) FF $flower;
-$flower: {@setcol(#fff) @setrad(#angleStep,36) . @setcol(#00f)
+$flower: [@setcol(#fff) @setrad(#angleStep,36) {. @setcol(#00f)
      /[-F]/[@setcol(#800) --F]  /[-F]/[@setcol(#800) --F]
      /[-F]/[@setcol(#800) --F]  /[-F]/[@setcol(#800) --F]
-     /[-F]/[@setcol(#800) --F]  /[-F]}
+     /[-F]/[@setcol(#800) --F]  /[-F]}]
 """,
     "p.size": "20,0.01",
     "p.angle": "36,0.05",
@@ -112,7 +110,7 @@ $seg: $seg F $seg;
 $leaf: [' { @setcol(#0f0) +F-FF-F+ | +F-FF-F } ];
 $flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
 $pedicel: FF;
-$wedge: [' ^ F] [{@setcol(#ff0) &&&& -F @setcol(#00f) +F | -F+F }]
+$wedge: [' ^ F] [@setcol(#ff0) {&&&& -F @setcol(#00f) +F | -F+F }]
 """,
     "p.size": "5,0.01",
     "p.angle": "18.0,0.05",
@@ -128,7 +126,7 @@ $start:  @setcol(#080) A;
 A: [&BL!A]/////'[&BL!A]///////'[&BL!A];
 B: S ///// B;
 S: B L;
-L: ['''^^{ @setcol(#0f0) -F+F+F-|-F+F+F}]
+L: [@setcol(#0f0) '''^^{-F+F+F-|-F+F+F}]
 """,
     "p.size": "10,0.01",
     "p.angle": "22.5,0.05",
@@ -169,7 +167,7 @@ D: [---------FF][+++++++++FF]B__-D
     "r": r"""
 $start: A;
 A: / A [++A $flower] -\ A [--A $flower ] +// A;
-$flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
+$flower: [@setcol(#fff) @setrad(#angleStep,72) {. @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}]
 """,
     "p.size": "5,0.01",
     "p.angle": "18,0.05",
