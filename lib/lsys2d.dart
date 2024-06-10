@@ -130,6 +130,22 @@ bool IsIdChar(String s) {
   return false;
 }
 
+rule.SymIndex InterpretEscape(List<String> escape) {
+  if (escape[0] == "setrad") {
+    int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
+    double val = double.parse(escape[2]) / 180.0 * Math.pi;
+    return rule.Sym.SetParam(index, val);
+  } else if (escape[0] == "setstr") {
+    int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
+    return rule.Sym.SetParam(index, escape[2]);
+  } else if (escape[0] == "setcol") {
+    return rule.Sym.SetParam(rule.xLineColor, escape[1]);
+  } else {
+    assert(false);
+    return rule.Sym.Symbol("@@INVALID@@");
+  }
+}
+
 enum ParseMode { REGULAR, ID, ESCAPE }
 
 // input looks like: "F[+FF][-FF]F[-F][+F]F"
@@ -168,6 +184,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
           escape.clear();
           escape.add("");
         } else if (IsIdChar(c)) {
+          // Assume Single Character Symbols are active for now
           out.add(rule.Sym.ActiveSymbol(c));
         } else {
           out.add(TranslateToSym(c));
@@ -176,18 +193,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
         assert(false);
       case ParseMode.ESCAPE:
         if (c == ")") {
-          if (escape[0] == "setrad") {
-            int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
-            double val = double.parse(escape[2]) / 180.0 * Math.pi;
-            out.add(rule.Sym.SetParam(index, val));
-          } else if (escape[0] == "setstr") {
-            int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
-            out.add(rule.Sym.SetParam(index, escape[2]));
-          } else if (escape[0] == "setcol") {
-            out.add(rule.Sym.SetParam(rule.xLineColor, escape[1]));
-          } else {
-            assert(false);
-          }
+          out.add(InterpretEscape(escape));
           mode = ParseMode.REGULAR;
         } else if (c == "(" || c == ",") {
           escape.add("");
