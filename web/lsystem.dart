@@ -23,6 +23,10 @@ num GetRandom(Math.Random rng, num a, num b) {
   return rng.nextDouble() * (b - a) + a;
 }
 
+double HexDigitToColorComponent(String s) {
+  return int.parse(s, radix: 16) * 1.0 / 15.0;
+}
+
 class ModelExtractor extends rule.Plotter {
   //VM.Vector3 _last = VM.Vector3.zero();
 
@@ -34,6 +38,29 @@ class ModelExtractor extends rule.Plotter {
   GeometryBuilder _gb = GeometryBuilder();
   List<VM.Vector3> _polygon = [];
   List<VM.Vector3> _polygon_color = [];
+  String _color_name = "#fff";
+  VM.Vector3 _color_vec = VM.Vector3(1.0, 1.0, 1.0);
+
+  VM.Vector3 GetCurrentColor(rule.State s) {
+    String name = s.get(rule.xLineColor);
+    print("@@@@@@@ ${name}");
+
+    if (name != _color_name) {
+      if (name[0] == "#") {
+        if (name.length == 4) {
+          _color_name = name;
+          _color_vec = VM.Vector3(HexDigitToColorComponent(name[1]),
+              HexDigitToColorComponent(name[2]), HexDigitToColorComponent(name[3]));
+        } else {
+          assert(false);
+        }
+      } else {
+        assert(false);
+      }
+    }
+
+    return _color_vec;
+  }
 
   ModelExtractor() {
     _gb.EnableAttribute(aColor);
@@ -50,8 +77,9 @@ class ModelExtractor extends rule.Plotter {
     print("add cylinder: ${rule.str(src)} -> ${rule.str(dst)}  dir: ${rule.str(dst - src)}");
     GeometryBuilder cylinder = CylinderGeometry(1.0, 1.0, len, 10, true);
     cylinder.EnableAttribute(aColor);
+
     cylinder.AddAttributesVector3TakeOwnership(
-        aColor, List.filled(cylinder.vertices.length, ColorGreen));
+        aColor, List.filled(cylinder.vertices.length, GetCurrentColor(s)));
     _gb.MergeAndTakeOwnership2(cylinder, dir, offset);
     // cube at the end
     /*
@@ -92,7 +120,7 @@ class ModelExtractor extends rule.Plotter {
   @override
   void PolyPoint(VM.Vector3 dst, rule.State s) {
     _polygon.add(dst);
-    _polygon_color.add(ColorBlue);
+    _polygon_color.add(GetCurrentColor(s));
   }
 
   void UpdateScene(Scene scene, RenderProgram prog) {
@@ -156,7 +184,7 @@ class LSystem {
         lsys2d.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
 
     _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, _options.GetDouble("lineWidth")));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, _options.Get("lineColor")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
     _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, _options.Get("backgroundColor")));
 
     //

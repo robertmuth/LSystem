@@ -110,7 +110,7 @@ rule.SymIndex TranslateToSym(String s) {
     case ')':
       return rule.Sym.Param(rule.Kind.GROW, rule.xAngleStep, xAngleGrowth);
     default:
-      print("unrecognized char ${s}");
+      print("unrecognized char [${s}]");
       assert(false);
       //assert("a" <= s && s <= "z");
       return rule.Sym.Symbol(s);
@@ -153,7 +153,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
     }
     switch (mode) {
       case ParseMode.REGULAR:
-        if (c == " ") {
+        if (c == " " || c == "\t" || c == "\n") {
           break;
         } else if (c == "\$") {
           mode = ParseMode.ID;
@@ -175,6 +175,11 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
             int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
             double val = double.parse(escape[2]) / 180.0 * Math.pi;
             out.add(rule.Sym.SetParam(index, val));
+          } else if (escape[0] == "setstr") {
+            int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
+            out.add(rule.Sym.SetParam(index, escape[2]));
+          } else if (escape[0] == "setcol") {
+            out.add(rule.Sym.SetParam(rule.xLineColor, escape[1]));
           } else {
             assert(false);
           }

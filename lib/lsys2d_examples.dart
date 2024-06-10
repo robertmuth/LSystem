@@ -11,10 +11,10 @@
 List<Map<String, String>> kExamples = [
   {
     "i": "3",
-    "r": """
-L: [S]^[S]+[S];
-S: [FFFFFF^F^F^F^F];
-F: F
+    "r": r"""
+
+L: [@setcol(#f00) $axis] ^ [@setcol(#0f0) $axis] + [@setcol(#00f) $axis];
+$axis: [FFFFFF^F^F^F^F]
 """,
     "p.size": "10,0.01",
     "p.angle": "90,0.05",
@@ -23,11 +23,33 @@ F: F
     "offsets": "0,0,0",
     "name": "axes"
   },
+  /*
+  {
+    "i": "18",
+    "r": r"""
+$start: [|FFFFFFFFFFF]P/////////'P/////////'P/////////'P;
+P: [&G[ccA][ccB][a][b]];
+G: tFtFtFtFtFtFtFtFtFtFtFtFtF;
+A: [+A{.].C.};
+B: [-B{.].C.};
+C: tfC;
+a: [+a]d;
+b: [-b]d;
+d: = tFd
+""",
+    "p.size": "10,0.01",
+    "p.angle": "10,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "leaves"
+  },
+  */
   {
     "i": "2",
     "r": r"""
-$start: FF $leaf;
-$leaf: {@setrad(#angleStep,30)- F ++++ F ++++ F}
+$start: @setcol(#080)  FF $leaf;
+$leaf: {@setcol(#0f0)  @setrad(#angleStep,30)- F ++++ F ++++ F}
 """,
     "p.size": "10,0.01",
     "p.angle": "30,0.05",
@@ -39,8 +61,8 @@ $leaf: {@setrad(#angleStep,30)- F ++++ F ++++ F}
   {
     "i": "2",
     "r": r"""
-$start: FF $flower;
-$flower: {@setrad(#angleStep,72)./[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
+$start: @setcol(#080) FF $flower;
+$flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
 """,
     "p.size": "10,0.01",
     "p.angle": "72,0.05",
@@ -52,10 +74,13 @@ $flower: {@setrad(#angleStep,72)./[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
   {
     "i": "2",
     "r": r"""
-$start: FF $flower;
-$flower: {@setrad(#angleStep,36)./[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]/[--F]/[-F]}
+$start: @setcol(#080) FF $flower;
+$flower: {@setcol(#fff) @setrad(#angleStep,36) . @setcol(#00f)
+     /[-F]/[@setcol(#800) --F]  /[-F]/[@setcol(#800) --F]
+     /[-F]/[@setcol(#800) --F]  /[-F]/[@setcol(#800) --F]
+     /[-F]/[@setcol(#800) --F]  /[-F]}
 """,
-    "p.size": "10,0.01",
+    "p.size": "20,0.01",
     "p.angle": "36,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
@@ -126,10 +151,10 @@ L: {-F+F+F-|-F+F+F}
   {
     "i": "12",
     "r": r"""
-L: EEEA;
-A: [++++++++++++++EC]B^+B[--------------ED]B+BA;
-C: [---------EE][+++++++++EE]B__+C;
-D: [---------EE][+++++++++EE]B__-D
+L: FFFA;
+A: [++++++++++++++FC]B^+B[--------------FD]B+BA;
+C: [---------FF][+++++++++FF]B__+C;
+D: [---------FF][+++++++++FF]B__-D
 """,
     "p.size": "10,0.01",
     "p.angle": "4,0.05",
@@ -689,6 +714,7 @@ B : L/B""",
     "offsets": "0,0,0",
     "name": "dragon spirograph"
   },
+  /*
   {
     "i": "15",
     "r":
@@ -700,6 +726,7 @@ B : L/B""",
     "offsets": "0,0,0",
     "name": "S.T.A.R.T"
   },
+  */
   {
     "i": "100",
     "r": "L : SYS; S : F|+[F->Y[S]]; Y : [--((F-F+)FY]+",
