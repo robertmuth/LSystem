@@ -376,7 +376,7 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         // print("Rule dir: ${qstr(dir)} ${str(dst)}");
         dst.add(src);
         if (in_polygon) {
-          if (s.text != "G") {
+          if (s.text != "f") {
             plotter.PolyPoint(dst, stack.last);
           }
         } else {

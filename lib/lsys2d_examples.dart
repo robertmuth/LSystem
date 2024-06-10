@@ -93,7 +93,7 @@ $flower: {@setcol(#fff) @setrad(#angleStep,36) . @setcol(#00f)
     "r": r"""
 $start: FF $flower;
 $flower: / $wedge //// $wedge //// $wedge //// $wedge //// $wedge;
-$wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
+$wedge: [' ^ F] [{ &&&& -F+F | -F+F }]
 """,
     "p.size": "5,0.01",
     "p.angle": "18.0,0.05",
@@ -109,10 +109,10 @@ $wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
 $plant:  @setcol(#080) $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
 $internode: F $seg [// & & $leaf] [// ^^ $leaf] F $seg;
 $seg: $seg F $seg;
-$leaf: [' { @setcol(#0f0) +f-ff-f+ | +f-ff-f } ];
+$leaf: [' { @setcol(#0f0) +F-FF-F+ | +F-FF-F } ];
 $flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
 $pedicel: FF;
-$wedge: [' ^ F] [{@setcol(#ff0)  &&&& -f @setcol(#00f) +f | -f+f }]
+$wedge: [' ^ F] [{@setcol(#ff0) &&&& -F @setcol(#00f) +F | -F+F }]
 """,
     "p.size": "5,0.01",
     "p.angle": "18.0,0.05",
@@ -124,10 +124,10 @@ $wedge: [' ^ F] [{@setcol(#ff0)  &&&& -f @setcol(#00f) +f | -f+f }]
   {
     "i": "5",
     "r": r"""
-A: [&FL!A]/////'[&FL!A]///////'[&FL!A];
-F: S ///// F;
-S: F L;
-L: ['''^^{-f+f+f-|-f+f+f}]
+A: [&BL!A]/////'[&BL!A]///////'[&BL!A];
+B: S ///// B;
+S: B L;
+L: ['''^^{-F+F+F-|-F+F+F}]
 """,
     "p.size": "10,0.01",
     "p.angle": "22.5,0.05",
