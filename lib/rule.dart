@@ -11,6 +11,7 @@ enum Kind {
   SUB,
   ADD,
   MUL,
+  GRAVITY_CONST,
   YAW_ADD,
   YAW_SUB,
   YAW_ADD_CONST,
@@ -141,6 +142,7 @@ class Sym {
       case Kind.MUL_CONST:
       case Kind.GROW:
       case Kind.SHRINK:
+      case Kind.GRAVITY_CONST:
       case Kind.YAW_ADD_CONST:
       case Kind.ROLL_ADD_CONST:
       case Kind.PITCH_ADD_CONST:
@@ -215,6 +217,25 @@ List<SymIndex> ExpandOneStep(List<SymIndex> input, Map<String, List<Rule>> rules
   return out;
 }
 
+/*
+void EulerFromQuaternion(VM.Quaternion q, VM.Vector3 euler) {
+  double t0 = 2.0 * (q.w * q.x + q.y * q.z);
+  double t1 = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+  double roll_x = Math.atan2(t0, t1);
+
+  double t2 = 2.0 * (q.w * q.y - q.z * q.x);
+  t2 = (t2 > 1.0) ? 1.0 : t2;
+  t2 = (t2 < -1.0) ? -1.0 : t2;
+  double pitch_y = Math.asin(t2);
+
+  double t3 = 2.0 * (q.w * q.z + q.x * q.y);
+  double t4 = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+  double yaw_z = Math.atan2(t3, t4);
+
+  euler.setValues(roll_x, pitch_y, yaw_z);
+}
+*/
+
 class State {
   List<dynamic> _state = [];
   double last_angle_yaw = 0.0;
@@ -263,6 +284,9 @@ class State {
         val = _state[sym.field]! * (1.0 + _state[sym.parameter]!);
       case Kind.SHRINK:
         val = _state[sym.field]! * (1.0 - _state[sym.parameter]!);
+      case Kind.GRAVITY_CONST:
+        _tmp_rot.setAxisAngle(_axis_x, sym.parameter);
+        val = _tmp_rot * (_state[sym.field]! as VM.Quaternion);
       //
       case Kind.YAW_ADD:
         // print("YAW_ADD ${_state[sym.parameter]!}");
@@ -414,6 +438,7 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
         break;
       case Kind.SET_CONST:
       case Kind.ADD_CONST:
+      case Kind.GRAVITY_CONST:
       case Kind.YAW_ADD_CONST:
       case Kind.ROLL_ADD_CONST:
       case Kind.PITCH_ADD_CONST:

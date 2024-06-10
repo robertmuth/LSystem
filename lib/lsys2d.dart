@@ -79,31 +79,38 @@ List<rule.SymIndex> ExtractAxiom(List<String> rules) {
 
 rule.SymIndex TranslateToSym(String s) {
   switch (s) {
+    case "_":
+      return rule.Sym.Param(rule.Kind.GRAVITY_CONST, rule.xDir, 0.2);
     case "!":
       return rule.Sym.Param(rule.Kind.MUL_CONST, rule.xAngleStep, -1.0);
     case "|":
       return rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.xDir, Math.pi);
+    //
     case "+":
       return rule.Sym.Param(rule.Kind.YAW_ADD, rule.xDir, rule.xAngleStep);
     case "-":
       return rule.Sym.Param(rule.Kind.YAW_SUB, rule.xDir, rule.xAngleStep);
+    //
     case "^":
       return rule.Sym.Param(rule.Kind.PITCH_ADD, rule.xDir, rule.xAngleStep);
-    case "_":
     case "&":
       return rule.Sym.Param(rule.Kind.PITCH_SUB, rule.xDir, rule.xAngleStep);
+    //
     case "/":
       return rule.Sym.Param(rule.Kind.ROLL_ADD, rule.xDir, rule.xAngleStep);
     case r"\":
       return rule.Sym.Param(rule.Kind.ROLL_SUB, rule.xDir, rule.xAngleStep);
+    //
     case "[":
       return rule.Sym.Simple(rule.Kind.STACK_PUSH);
     case "]":
       return rule.Sym.Simple(rule.Kind.STACK_POP);
+    //
     case "{":
       return rule.Sym.Simple(rule.Kind.POLY_START);
     case "}":
       return rule.Sym.Simple(rule.Kind.POLY_END);
+    //
     case "'":
       return rule.Sym.Simple(rule.Kind.COLOR_NEXT);
     case '<':

@@ -28,13 +28,13 @@ $axis: [FFFFFF^F^F^F^F]
     "r": r"""
 $start: [|FFFFFFFFFFF]$leaf;
 $leaf: @setcol(#080) [&G[$c$c$A][$c$c$B][$a][$b]];
-$G: tFtFtFtFtFtFtFtFtFtFtFtFtF;
+$G: _F_F_F_F_F_F_F_F_F_F_F_F_F;
 $A: [@setcol(#080) + $A {. ] @setcol(#0f0) . $C .};
 $B: [@setcol(#080) - $B {. ] @setcol(#0f0) . $C .};
-$C: tf$C;
+$C: _f$C;
 $a: [+$a]$d;
 $b: [-$b]$d;
-$d: tF$d
+$d: _F$d
 """,
     "p.size": "10,0.1",
     "p.angle": "10,0.05",
@@ -152,8 +152,8 @@ L: {-F+F+F-|-F+F+F}
     "r": r"""
 L: FFFA;
 A: [++++++++++++++FC]B^+B[--------------FD]B+BA;
-C: [---------FF][+++++++++FF]B__+C;
-D: [---------FF][+++++++++FF]B__-D
+C: [---------FF][+++++++++FF]B&&+C;
+D: [---------FF][+++++++++FF]B&&-D
 """,
     "p.size": "10,0.01",
     "p.angle": "4,0.05",
@@ -179,7 +179,7 @@ $flower: [@setcol(#fff) @setrad(#angleStep,72) {. @setcol(#00f) /[-F]/[-F]/[-F]/
   {
     "i": "3",
     "r": r"""
-A: ^\AF^\AFA-F^//AFA_F+//AFA-F/A-/
+A: ^\AF^\AFA-F^//AFA&F+//AFA-F/A-/
 """,
     "p.size": "10,0.01",
     "p.angle": "90,0.05",
@@ -192,7 +192,7 @@ A: ^\AF^\AFA-F^//AFA_F+//AFA-F/A-/
     "i": "4",
     "r": """
 L : BBBBBA;
-A : [++BB[--C][++C][__C][^^C]A]/////+BBB[--C][++C][__C][^^C]A;
+A : [++BB[--C][++C][&&C][^^C]A]/////+BBB[--C][++C][&&C][^^C]A;
 B: B;
 B : \\\\B;
 C :""",
