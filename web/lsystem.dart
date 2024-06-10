@@ -8,7 +8,6 @@ import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
 import 'package:lsystem/logging.dart' as log;
-import 'package:lsystem/option.dart';
 import 'package:lsystem/webutil.dart';
 
 import 'package:vector_math/vector_math.dart' as VM;
@@ -43,7 +42,6 @@ class ModelExtractor extends rule.Plotter {
 
   VM.Vector3 GetCurrentColor(rule.State s) {
     String name = s.get(rule.xLineColor);
-    print("@@@@@@@ ${name}");
 
     if (name != _color_name) {
       if (name[0] == "#") {
@@ -74,7 +72,7 @@ class ModelExtractor extends rule.Plotter {
     double len = (dst - src).length;
     VM.Vector3 offset = VM.Vector3.zero();
     VM.Vector3.mix(src, dst, 0.5, offset);
-    print("add cylinder: ${rule.str(src)} -> ${rule.str(dst)}  dir: ${rule.str(dst - src)}");
+    // print("add cylinder: ${rule.str(src)} -> ${rule.str(dst)}  dir: ${rule.str(dst - src)}");
     GeometryBuilder cylinder = CylinderGeometry(1.0, 1.0, len, 10, true);
     cylinder.EnableAttribute(aColor);
 
@@ -152,9 +150,8 @@ class LSystem {
   String _name = "";
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
-  final Options _options;
 
-  LSystem(this._options, Math.Random rng)
+  LSystem(Math.Random rng)
       : _rng = rng,
         _plotter = ModelExtractor() {}
 
@@ -177,15 +174,15 @@ class LSystem {
 
     _info = rule.PatternInfo(_pattern);
     print(_info);
-    print(_pattern);
+    // print(_pattern);
     //
 
     _pattern_prefix.addAll(
         lsys2d.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
 
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, _options.GetDouble("lineWidth")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, 1.0));
     _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, _options.Get("backgroundColor")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
 
     //
 
@@ -211,8 +208,11 @@ class LSystem {
       time_based.add(rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.pDir, t * 0.001));
     }
     */
-
+    var start = DateTime.now();
     rule.RenderAll(_pattern_prefix + time_based, _pattern, _plotter);
+    var stop = DateTime.now();
+    print("lsystem rendering took: ${stop.difference(start)}");
+
     _plotter.UpdateScene(scene, prog);
   }
 }
@@ -246,6 +246,19 @@ void HandleCommand(String cmd, String param) {
       gPattern.selectedIndex = (gNumExample + 1) % examples.length;
       gActiveLSystem = null;
       break;
+    case "3":
+      print("gen+");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      int n = int.parse(desc["i"]!);
+      desc["i"] = "${n - 1}";
+      gActiveLSystem = null;
+      break;
+    case "4":
+      print("gen+");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      int n = int.parse(desc["i"]!);
+      desc["i"] = "${n + 1}";
+      gActiveLSystem = null;
     case "A+":
       Show(HTML.querySelector(".about")!);
       break;
@@ -261,12 +274,6 @@ void HandleCommand(String cmd, String param) {
     case "C+":
       Show(HTML.querySelector(".config")!);
       break;
-    case "X":
-      String preset = (HTML.querySelector("#preset") as HTML.SelectElement).value!;
-      gOptions.SetNewSettings(preset);
-
-      gActiveLSystem = null;
-      break;
   }
 }
 
@@ -281,11 +288,13 @@ void animateLSystem(double t, Scene scene, RenderProgram prog) {
     if (seed == 0) {
       seed = new DateTime.now().millisecondsSinceEpoch;
     }
+    var start = DateTime.now();
 
     var examples = lsys2d_examples.kExamples;
-    gOptions.SaveToLocalStorage();
-    gActiveLSystem = LSystem(gOptions, Math.Random(seed));
+    gActiveLSystem = LSystem(Math.Random(seed));
     gActiveLSystem!.Init(examples[gNumExample % examples.length]);
+    var stop = DateTime.now();
+    print("lsystem expansion took ${stop.difference(start)}");
     gActiveLSystem!.draw(t, scene, prog);
   }
 }
@@ -345,7 +354,7 @@ void main() {
   RenderProgram prog =
       RenderProgram("textured", cgl, multiColorVertexShader, multiColorFragmentShader);
 
-  Perspective perspective = Perspective(orbit, 0.1, 1000.0);
+  Perspective perspective = Perspective(orbit, 0.1, 5000.0);
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
   phasePerspective.clearColorBuffer = false;
   Scene scenePerspective = Scene("objects", prog, [perspective]);
