@@ -24,6 +24,7 @@ enum Kind {
   SHRINK,
   // also marks end of parameter
   SYMBOL,
+  ACTIVE_SYMBOL,
   //
   STACK_PUSH,
   STACK_POP,
@@ -108,6 +109,10 @@ class Sym {
     return GetIndexForSymbo(Sym(Kind.SYMBOL, text));
   }
 
+  static SymIndex ActiveSymbol(String text) {
+    return GetIndexForSymbo(Sym(Kind.ACTIVE_SYMBOL, text));
+  }
+
   static SymIndex Param(Kind kind, int name, dynamic parameter) {
     return GetIndexForSymbo(Sym(kind, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
   }
@@ -152,6 +157,8 @@ class Sym {
         return "(${kind.name} ${text} ${parameter})";
       case Kind.SYMBOL:
         return "[${text}]";
+      case Kind.ACTIVE_SYMBOL:
+        return "[!${text}]";
       //
       case Kind.INVALID:
       case Kind.COLOR_NEXT:
@@ -189,7 +196,7 @@ List<SymIndex> ExpandOneStep(List<SymIndex> input, Map<String, List<Rule>> rules
   List<SymIndex> out = [];
   for (SymIndex i in input) {
     Kind kind = Kind.values[i & 0xff];
-    if (kind != Kind.SYMBOL) {
+    if (kind != Kind.SYMBOL && kind != Kind.ACTIVE_SYMBOL) {
       out.add(i);
       continue;
     }
@@ -356,9 +363,8 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
     Sym s = Sym.GetSymbolForIndex(i);
     switch (s.kind) {
       case Kind.SYMBOL:
-        if (s.text.length > 1) {
-          continue;
-        }
+        break;
+      case Kind.ACTIVE_SYMBOL:
         var state = stack.last;
         VM.Vector3 src = state.get(xPos);
         if (s.text == ".") {

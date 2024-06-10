@@ -124,6 +124,7 @@ $wedge: [' ^ F] [{@setcol(#ff0) &&&& -F @setcol(#00f) +F | -F+F }]
   {
     "i": "5",
     "r": r"""
+$start: A;
 A: [&BL!A]/////'[&BL!A]///////'[&BL!A];
 B: S ///// B;
 S: B L;
@@ -166,6 +167,7 @@ D: [---------FF][+++++++++FF]B__-D
   {
     "i": "4",
     "r": r"""
+$start: A;
 A: / A [++A $flower] -\ A [--A $flower ] +// A;
 $flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
 """,

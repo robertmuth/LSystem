@@ -66,7 +66,12 @@ List<rule.SymIndex> ExtractAxiom(List<String> rules) {
     List<String> part = r.split(":");
     if (part.length == 0) continue;
     assert(part.length == 2, "bad rule ${part}");
-    return [rule.Sym.Symbol(part[0].trim())];
+    var s = part[0].trim();
+    if (s.length > 1) {
+      return [rule.Sym.Symbol(s)];
+    } else {
+      return [rule.Sym.ActiveSymbol(s)];
+    }
   }
   assert(false);
   return [];
@@ -163,7 +168,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
           escape.clear();
           escape.add("");
         } else if (IsIdChar(c)) {
-          out.add(rule.Sym.Symbol(c));
+          out.add(rule.Sym.ActiveSymbol(c));
         } else {
           out.add(TranslateToSym(c));
         }
