@@ -106,13 +106,13 @@ $wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
     "i": "5",
 // page 27
     "r": r"""
-$plant: $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
+$plant:  @setcol(#080) $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
 $internode: F $seg [// & & $leaf] [// ^^ $leaf] F $seg;
 $seg: $seg F $seg;
-$leaf: [' { +f-ff-f+ | +f-ff-f } ];
+$leaf: [' { @setcol(#0f0) +f-ff-f+ | +f-ff-f } ];
 $flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
 $pedicel: FF;
-$wedge: [' ^ F] [{ &&&& -f+f | -f+f }]
+$wedge: [' ^ F] [{@setcol(#ff0)  &&&& -f @setcol(#00f) +f | -f+f }]
 """,
     "p.size": "5,0.01",
     "p.angle": "18.0,0.05",
@@ -166,7 +166,8 @@ D: [---------FF][+++++++++FF]B__-D
   {
     "i": "4",
     "r": r"""
-A: /A[++A]-\A[--A]+//A
+A: / A [++A $flower] -\ A [--A $flower ] +// A;
+$flower: {@setcol(#fff) @setrad(#angleStep,72) . @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}
 """,
     "p.size": "5,0.01",
     "p.angle": "18,0.05",
