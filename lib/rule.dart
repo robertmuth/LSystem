@@ -139,7 +139,7 @@ class Sym {
       case Kind.YAW_ADD_CONST:
       case Kind.ROLL_ADD_CONST:
       case Kind.PITCH_ADD_CONST:
-        return "${kind.name} ${text} ${parameter}";
+        return "(${kind.name} ${text} ${parameter})";
       case Kind.SUB:
       case Kind.ADD:
       case Kind.MUL:
@@ -149,7 +149,7 @@ class Sym {
       case Kind.ROLL_SUB:
       case Kind.PITCH_ADD:
       case Kind.PITCH_SUB:
-        return "${kind.name} ${text} ${parameter}";
+        return "(${kind.name} ${text} ${parameter})";
       case Kind.SYMBOL:
         return "[${text}]";
       //
@@ -381,28 +381,28 @@ void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
           }
         } else {
           if (s.text != "f") {
-            print("@@@@@ DRAW");
+            // print("@@@@@ DRAW");
             plotter.Draw(src, dst, dir, stack.last);
           }
         }
         state.set(xPos, dst);
       case Kind.POLY_START:
-        print("@@@@@ POLY-START");
+        // print("@@@@@ POLY-START");
         assert(!in_polygon);
         in_polygon = true;
         stack.add(stack.last.Clone());
         plotter.PolyStart(stack.last);
       case Kind.POLY_END:
-        print("@@@@@ POLY-END");
+        // print("@@@@@ POLY-END");
         assert(in_polygon);
         in_polygon = false;
         plotter.PolyEnd(stack.last);
         stack.removeLast();
       case Kind.STACK_PUSH:
-        print("@@@@@ PUSH");
+        // print("@@@@@ PUSH");
         stack.add(stack.last.Clone());
       case Kind.STACK_POP:
-        print("@@@@@ POP");
+        // print("@@@@@ POP");
         stack.removeLast();
       case Kind.INVALID:
         assert(false);
