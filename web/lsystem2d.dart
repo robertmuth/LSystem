@@ -54,6 +54,7 @@ class Canvas2dPlotter extends rule.Plotter {
     var context = _canvas.context2D;
     context..stroke();
     for (var poly in _polygons) {
+      assert(poly.length >= 3);
       context
         ..moveTo(poly[0].x, poly[0].y)
         ..lineWidth = s.get(rule.xWidth)
