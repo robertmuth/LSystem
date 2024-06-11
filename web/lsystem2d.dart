@@ -195,6 +195,33 @@ void HandleCommand(String cmd, String param) {
       gPattern.selectedIndex = (gNumExample + 1) % examples.length;
       gActiveLSystem = null;
       break;
+    case "3":
+      print("iter-");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      int n = int.parse(desc["i"]!);
+      desc["i"] = "${n - 1}";
+      gActiveLSystem = null;
+      break;
+    case "4":
+      print("iter+");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      int n = int.parse(desc["i"]!);
+      desc["i"] = "${n + 1}";
+      gActiveLSystem = null;
+    case "5":
+      print("len+");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
+      vals[0] = vals[0] * (1.0 - vals[1]);
+      desc["p.size"] = "${vals[0]},${vals[1]}";
+      gActiveLSystem = null;
+    case "6":
+      print("len+");
+      var desc = lsys2d_examples.kExamples[gNumExample];
+      List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
+      vals[0] = vals[0] * (1.0 + vals[1]);
+      desc["p.size"] = "${vals[0]},${vals[1]}";
+      gActiveLSystem = null;
     case "F":
       ToggleFullscreen();
       break;
