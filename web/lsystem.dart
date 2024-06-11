@@ -230,41 +230,31 @@ void HandleCommand(String cmd, String param) {
       gActiveLSystem = null;
       break;
     case "1":
-      print("prev");
       gPattern.selectedIndex = (gNumExample - 1) % gExamples.length;
       gActiveLSystem = null;
       break;
     case "2":
-      print("next");
       gPattern.selectedIndex = (gNumExample + 1) % gExamples.length;
       gActiveLSystem = null;
       break;
     case "3":
-      print("iter-");
-      var desc = gExamples[gNumExample];
-      int n = int.parse(desc["i"]!);
-      desc["i"] = "${n - 1}";
+      lsys_examples.IterationAdd(gExamples[gNumExample], -1);
       gActiveLSystem = null;
       break;
     case "4":
-      print("iter+");
-      var desc = gExamples[gNumExample];
-      int n = int.parse(desc["i"]!);
-      desc["i"] = "${n + 1}";
+      lsys_examples.IterationAdd(gExamples[gNumExample], 1);
       gActiveLSystem = null;
     case "5":
-      print("len+");
-      var desc = gExamples[gNumExample];
-      List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
-      vals[0] = vals[0] * (1.0 - vals[1]);
-      desc["p.size"] = "${vals[0]},${vals[1]}";
+      lsys_examples.LengthShrink(gExamples[gNumExample]);
       gActiveLSystem = null;
     case "6":
-      print("len+");
-      var desc = gExamples[gNumExample];
-      List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
-      vals[0] = vals[0] * (1.0 + vals[1]);
-      desc["p.size"] = "${vals[0]},${vals[1]}";
+      lsys_examples.LengthGrow(gExamples[gNumExample]);
+      gActiveLSystem = null;
+    case "7":
+      lsys_examples.AngleShrink(gExamples[gNumExample]);
+      gActiveLSystem = null;
+    case "8":
+      lsys_examples.AngleGrow(gExamples[gNumExample]);
       gActiveLSystem = null;
     case "F":
       webutil.ToggleFullscreen();

@@ -1321,3 +1321,36 @@ List<Map<String, String>> kExamples2d = [
 ];
 
 List<Map<String, String>> kExamplesAll = kExamples3d + kExamples2d;
+
+void IterationAdd(Map<String, String> desc, int x) {
+  int n = int.parse(desc["i"]!);
+  desc["i"] = "${n + x}";
+}
+
+void GenericGrow(Map<String, String> desc, String attr) {
+  List<double> vals = List.from(desc[attr]!.split(",").map(double.parse));
+  vals[0] = vals[0] * (1.0 + vals[1]);
+  desc[attr] = "${vals[0]},${vals[1]}";
+}
+
+void GenericShrink(Map<String, String> desc, String attr) {
+  List<double> vals = List.from(desc[attr]!.split(",").map(double.parse));
+  vals[0] = vals[0] * (1.0 - vals[1]);
+  desc[attr] = "${vals[0]},${vals[1]}";
+}
+
+void LengthGrow(Map<String, String> desc) {
+  GenericGrow(desc, "p.size");
+}
+
+void LengthShrink(Map<String, String> desc) {
+  GenericShrink(desc, "p.size");
+}
+
+void AngleGrow(Map<String, String> desc) {
+  GenericGrow(desc, "p.angle");
+}
+
+void AngleShrink(Map<String, String> desc) {
+  GenericShrink(desc, "p.angle");
+}
