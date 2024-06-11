@@ -147,6 +147,10 @@ rule.SymIndex InterpretEscape(List<String> escape) {
     return rule.Sym.SetParam(index, escape[2]);
   } else if (escape[0] == "setcol") {
     return rule.Sym.SetParam(rule.xLineColor, escape[1]);
+  } else if (escape[0] == "muld") {
+    int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
+    double val = double.parse(escape[2]);
+    return rule.Sym.Param(rule.Kind.MUL_CONST, index, val);
   } else {
     assert(false);
     return rule.Sym.Symbol("@@INVALID@@");
@@ -263,6 +267,7 @@ List<rule.SymIndex> InitPrefix(Map<String, String> desc, VM.Vector3 pos, VM.Quat
   List<rule.SymIndex> out = [];
   out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xPos, pos));
   out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xDir, dir));
+  out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xWidth, 1.0));
 
   var size = desc["p.size"]!.split(",");
   assert(size.length >= 1, "${size}");

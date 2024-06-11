@@ -72,8 +72,9 @@ class ModelExtractor extends rule.Plotter {
     double len = (dst - src).length;
     VM.Vector3 offset = VM.Vector3.zero();
     VM.Vector3.mix(src, dst, 0.5, offset);
+    double width = s.get(rule.xWidth);
     // print("add cylinder: ${rule.str(src)} -> ${rule.str(dst)}  dir: ${rule.str(dst - src)}");
-    GeometryBuilder cylinder = CylinderGeometry(1.0, 1.0, len, 10, true);
+    GeometryBuilder cylinder = CylinderGeometry(width, width, len, 10, true);
     cylinder.EnableAttribute(aColor);
 
     cylinder.AddAttributesVector3TakeOwnership(
@@ -174,7 +175,6 @@ class LSystem {
 
     _info = rule.PatternInfo(_pattern);
     print(_info);
-    // print(_pattern);
     //
 
     _pattern_prefix.addAll(
@@ -184,10 +184,8 @@ class LSystem {
     _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
     _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
 
-    //
-
-    print(rule.StringifySymIndexList(_pattern_prefix));
-    // print(_pattern);
+    // print(rule.StringifySymIndexList(_pattern_prefix));
+    // print(rule.StringifySymIndexList(_pattern));
   }
 
   String Info() {

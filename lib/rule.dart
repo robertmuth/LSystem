@@ -11,16 +11,21 @@ enum Kind {
   SUB,
   ADD,
   MUL,
+  //
   GRAVITY_CONST,
+  //
   YAW_ADD,
   YAW_SUB,
   YAW_ADD_CONST,
+  //
   ROLL_ADD,
   ROLL_SUB,
   ROLL_ADD_CONST,
+  //
   PITCH_ADD,
   PITCH_SUB,
   PITCH_ADD_CONST,
+  //
   GROW,
   SHRINK,
   // also marks end of parameter
