@@ -1,16 +1,18 @@
 import 'dart:math' as Math;
 import 'dart:html';
 import 'dart:core';
-import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
+import 'package:lsystem/lsys_examples.dart' as lsys_examples;
 import 'package:lsystem/lsys_parse.dart' as parse;
 import 'package:lsystem/lsys_rule.dart' as rule;
-import 'package:lsystem/webutil.dart';
+import 'package:lsystem/webutil.dart' as webutil;
 
 import 'package:vector_math/vector_math.dart' as VM;
 
 final Element gFps = querySelector("#fps") as Element;
 final CanvasElement gCanvas = querySelector("#area") as CanvasElement;
 final SelectElement gPattern = querySelector("#pattern") as SelectElement;
+
+final gExamples = lsys_examples.kExamplesAll;
 
 num GetRandom(Math.Random rng, num a, num b) {
   return rng.nextDouble() * (b - a) + a;
@@ -169,63 +171,62 @@ int gNumExample = 0;
 LSystem? gActiveLSystem = null;
 
 void HandleCommand(String cmd, String param) {
-  var examples = lsys2d_examples.kExamples;
   print("HandleCommand: ${cmd} ${param}");
   switch (cmd) {
     case "C":
-      Toggle(querySelector(".config")!);
+      webutil.Toggle(querySelector(".config")!);
       break;
     case "P":
-      Toggle(querySelector(".performance")!);
+      webutil.Toggle(querySelector(".performance")!);
       break;
     case "R":
       gActiveLSystem = null;
       break;
     case "1":
       print("prev");
-      gPattern.selectedIndex = (gNumExample - 1) % examples.length;
+      gPattern.selectedIndex = (gNumExample - 1) % gExamples.length;
       gActiveLSystem = null;
       break;
     case "2":
       print("next");
-      gPattern.selectedIndex = (gNumExample + 1) % examples.length;
+      gPattern.selectedIndex = (gNumExample + 1) % gExamples.length;
       gActiveLSystem = null;
       break;
     case "3":
       print("iter-");
-      var desc = lsys2d_examples.kExamples[gNumExample];
+      var desc = gExamples[gNumExample];
       int n = int.parse(desc["i"]!);
       desc["i"] = "${n - 1}";
       gActiveLSystem = null;
       break;
     case "4":
       print("iter+");
-      var desc = lsys2d_examples.kExamples[gNumExample];
+      var desc = gExamples[gNumExample];
       int n = int.parse(desc["i"]!);
       desc["i"] = "${n + 1}";
       gActiveLSystem = null;
     case "5":
       print("len+");
-      var desc = lsys2d_examples.kExamples[gNumExample];
+      var desc = gExamples[gNumExample];
       List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
       vals[0] = vals[0] * (1.0 - vals[1]);
       desc["p.size"] = "${vals[0]},${vals[1]}";
       gActiveLSystem = null;
     case "6":
       print("len+");
-      var desc = lsys2d_examples.kExamples[gNumExample];
+      var desc = gExamples[gNumExample];
       List<double> vals = List.from(desc["p.size"]!.split(",").map(double.parse));
       vals[0] = vals[0] * (1.0 + vals[1]);
       desc["p.size"] = "${vals[0]},${vals[1]}";
       gActiveLSystem = null;
     case "F":
-      ToggleFullscreen();
+      webutil.ToggleFullscreen();
       break;
     case "C-":
-      Hide(querySelector(".config")!);
+      webutil.Hide(querySelector(".config")!);
       break;
     case "C+":
-      Show(querySelector(".config")!);
+      webutil.Show(querySelector(".config")!);
       break;
   }
 }
@@ -253,15 +254,14 @@ void animate(num t_num) {
       seed = new DateTime.now().millisecondsSinceEpoch;
     }
 
-    var examples = lsys2d_examples.kExamples;
     gActiveLSystem = LSystem(gCanvas, Math.Random(seed));
-    gActiveLSystem!.Init(examples[gNumExample % examples.length]);
+    gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
   } else {
     LSystem s = gActiveLSystem!;
 
     String extra = s.Info();
 
-    UpdateFrameCount(t, gFps, extra);
+    webutil.UpdateFrameCount(t, gFps, extra);
 
     s.draw(t / 10);
     /*
@@ -278,7 +278,7 @@ void main() {
 
   SelectElement patterns = querySelector("#pattern") as SelectElement;
   int count = 0;
-  for (var desc in lsys2d_examples.kExamples) {
+  for (var desc in gExamples) {
     OptionElement o = new OptionElement(data: desc["name"]!, value: "${count}");
     patterns.append(o);
     ++count;
@@ -289,7 +289,7 @@ void main() {
   final int w2 = window.innerWidth!;
   final int h2 = window.innerHeight!;
 
-  for (var example in lsys2d_examples.kExamples) {
+  for (var example in gExamples) {
     print(example["name"]!);
     // just confirm we can parse it
     parse.ParseRules(example["r"]!.split(";"));

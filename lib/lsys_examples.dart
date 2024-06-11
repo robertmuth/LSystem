@@ -8,7 +8,7 @@
 // "s.size" - tuple "sensitivity ize" (value, growth)
 // "s.angle" - tuple "sensitivity angle" (value, growth)
 // "offsets" - optional triple "offset" (x, y, rotation)
-List<Map<String, String>> kExamples = [
+List<Map<String, String>> kExamples3d = [
   {
     "i": "3",
     "r": r"""
@@ -318,7 +318,10 @@ B : L/B""",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
     "name": "plant"
-  },
+  }
+];
+
+List<Map<String, String>> kExamples2d = [
   {
     "i": "10",
     "r": "L : FFFS[+L][-L]FL; S : >S)s",
@@ -1316,3 +1319,5 @@ B : L/B""",
     "name": "spin engine"
   },
 ];
+
+List<Map<String, String>> kExamplesAll = kExamples3d + kExamples2d;

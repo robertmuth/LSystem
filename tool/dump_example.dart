@@ -1,10 +1,12 @@
 import 'dart:math' as Math;
 
-import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
-import 'package:lsystem/lsys2d.dart' as lsys2d;
-import 'package:lsystem/rule.dart' as rule;
+import 'package:lsystem/lsys_examples.dart' as lsys_examples;
+import 'package:lsystem/lsys_parse.dart' as lsys2d;
+import 'package:lsystem/lsys_rule.dart' as rule;
 
 import 'package:vector_math/vector_math.dart' as VM;
+
+final gExamples = lsys_examples.kExamplesAll;
 
 void TestMe(VM.Quaternion dir) {
   print("quad: ${rule.qstr(dir)}");
@@ -56,7 +58,7 @@ class DebugPlotter extends rule.Plotter {
 
 void main(List<String> args) {
   Math.Random rng = Math.Random(0);
-  var desc = lsys2d_examples.kExamples[0];
+  var desc = gExamples[0];
   List<String> rule_strs = desc["r"]!.split(";");
   Map<String, List<rule.Rule>> rules = lsys2d.ParseRules(rule_strs);
   String name = desc["name"]!;
