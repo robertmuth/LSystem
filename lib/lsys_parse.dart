@@ -1,5 +1,5 @@
 import 'dart:core';
-import 'package:lsystem/rule.dart' as rule;
+import 'package:lsystem/lsys_rule.dart' as rule;
 import 'package:vector_math/vector_math.dart' as VM;
 import 'dart:math' as Math;
 

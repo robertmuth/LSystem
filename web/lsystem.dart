@@ -3,8 +3,8 @@ import 'dart:html' as HTML;
 import 'dart:core';
 
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
-import 'package:lsystem/lsys2d.dart' as lsys2d;
-import 'package:lsystem/rule.dart' as rule;
+import 'package:lsystem/lsys_parse.dart' as parse;
+import 'package:lsystem/lsys_rule.dart' as rule;
 import 'package:lsystem/webutil.dart';
 
 import 'package:vector_math/vector_math.dart' as VM;
@@ -157,14 +157,14 @@ class LSystem {
     _name = desc["name"]!;
     List<String> rule_strs = desc["r"]!.split(";");
 
-    _rules = lsys2d.ParseRules(rule_strs);
+    _rules = parse.ParseRules(rule_strs);
     print("Lsystem: ${_name}");
     for (var rs in _rules.values) {
       for (var r in rs) {
         print(r);
       }
     }
-    _pattern = lsys2d.ExtractAxiom(rule_strs);
+    _pattern = parse.ExtractAxiom(rule_strs);
     int iterations = int.parse(desc["i"]!);
     for (int i = 0; i < iterations; ++i) {
       _pattern = rule.ExpandOneStep(_pattern, _rules, _rng);
@@ -175,7 +175,7 @@ class LSystem {
     //
 
     _pattern_prefix.addAll(
-        lsys2d.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
+        parse.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
 
     _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, 1.0));
     _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
