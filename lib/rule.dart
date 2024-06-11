@@ -72,13 +72,25 @@ class ParamDescriptor {
   }
 }
 
-final int xPos = ParamDescriptor.Register("#pos", () => VM.Vector3.zero(), (x) => x.clone());
-final int xDir = ParamDescriptor.Register("#dir", () => VM.Quaternion.identity(), (x) => x.clone());
-final int xStepSize = ParamDescriptor.Register("#stepSize", () => 0.0, (x) => x);
-final int xAngleStep = ParamDescriptor.Register("#angleStep", () => 0.0, (x) => x);
-final int xWidth = ParamDescriptor.Register("#width", () => 0.0, (x) => x);
-final int xBackgroundColor = ParamDescriptor.Register("#bgColor", () => "", (x) => x);
-final int xLineColor = ParamDescriptor.Register("#lineColor", () => "", (x) => x);
+int xPos = -1;
+int xDir = -1;
+int xStepSize = -1;
+int xAngleStep = -1;
+int xWidth = -1;
+int xBackgroundColor = -1;
+int xLineColor = -1;
+
+// Must be called at startup
+void RegisterStandardParams() {
+  print("RegisterStandardParams");
+  xPos = ParamDescriptor.Register("#pos", () => VM.Vector3.zero(), (x) => x.clone());
+  xDir = ParamDescriptor.Register("#dir", () => VM.Quaternion.identity(), (x) => x.clone());
+  xStepSize = ParamDescriptor.Register("#stepSize", () => 0.0, (x) => x);
+  xAngleStep = ParamDescriptor.Register("#angleStep", () => 0.0, (x) => x);
+  xWidth = ParamDescriptor.Register("#width", () => 0.0, (x) => x);
+  xBackgroundColor = ParamDescriptor.Register("#bgColor", () => "", (x) => x);
+  xLineColor = ParamDescriptor.Register("#lineColor", () => "", (x) => x);
+}
 
 bool KindIsParameter(Kind k) {
   return (Kind.SET_CONST as int) <= (k as int) && (k as int) <= (Kind.SHRINK as int);

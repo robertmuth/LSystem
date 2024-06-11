@@ -10,23 +10,24 @@ https://github.com/benvan/lsys
 /*
  All commands:
 
-   F	         Move forward by line length drawing a line
-   f	 xx      Move forward by line length without drawing a line
-   +	         Turn left by turning angle
-   -	         Turn right by turning angle
-   |	         Reverse direction (ie: turn by 180 degrees)
-   [	         Push current drawing state onto stack
-   ]	         Pop current drawing state from the stack
-   #	 xx      Increment the line width by line width increment
-   !	  **     Decrement the line width by line width increment
-   @	 xx    Draw a dot with line width radius
-   {	 xx      Open a polygon
-   }	 xx      Close a polygon and fill it with fill colour
-   >	         Multiply the line length by the line length scale factor
-   <	         Divide the line length by the line length scale factor
-   &	  **     Swap the meaning of + and -
-   (	         Decrement turning angle by turning angle increment
-   )	         Increment turning angle by turning angle increment
+ F	       Move forward by line length drawing or recording a vertex
+ f	       Move forward by line length without drawing or recording a vertex
+ .         Record vertex without moving
+ +	         Turn left by turning angle
+ -	         Turn right by turning angle
+ |	         Reverse direction (ie: turn by 180 degrees)
+ [	         Push current drawing state onto stack
+ ]	         Pop current drawing state from the stack
+ #	 xx      Increment the line width by line width increment
+ !	  **     Decrement the line width by line width increment
+ @	 xx    Draw a dot with line width radius
+ {	 xx      Open a polygon
+ }	 xx      Close a polygon and fill it with fill colour
+ >	         Multiply the line length by the line length scale factor
+ <	         Divide the line length by the line length scale factor
+ &	  **     Swap the meaning of + and -
+ (	         Decrement turning angle by turning angle increment
+ )	         Increment turning angle by turning angle increment
 */
 
 // Subset supported
@@ -40,6 +41,7 @@ Set<String> kValid = {
   "|", // increment [angle] by 180;
 };
 
+// This initialization will be delayed by the dart runtime
 final int xAngleGrowth = rule.ParamDescriptor.Register("angle_growth", () => 0.0, (x) => x);
 final int xStepGrowth = rule.ParamDescriptor.Register("step_growth", () => 0.0, (x) => x);
 
@@ -138,6 +140,7 @@ bool IsIdChar(String s) {
 }
 
 rule.SymIndex InterpretEscape(List<String> escape) {
+  // print("@@@@: ${escape} ${rule.xLineColor}");
   if (escape[0] == "setrad") {
     int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
     double val = double.parse(escape[2]) / 180.0 * Math.pi;

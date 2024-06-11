@@ -7,7 +7,6 @@ import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
 import 'package:lsystem/logging.dart' as log;
-import 'package:lsystem/option.dart';
 import 'package:lsystem/webutil.dart';
 
 import 'package:vector_math/vector_math.dart' as VM;
@@ -104,9 +103,8 @@ class LSystem {
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
   AnimatedColor? _ac;
-  final Options _options;
 
-  LSystem(this._canvas, this._options, Math.Random rng)
+  LSystem(this._canvas, Math.Random rng)
       : _rng = rng,
         _plotter = Canvas2dPlotter(_canvas),
         _ac = AnimatedColor(rng) {
@@ -139,12 +137,12 @@ class LSystem {
     _pattern_prefix.addAll(lsys2d.InitPrefix(
         desc, VM.Vector3(_width / 2, _height / 2, 0.0), VM.Quaternion.euler(0, 0, 1.0 * Math.pi)));
 
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, _options.GetDouble("lineWidth")));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, _options.Get("lineColor")));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, _options.Get("backgroundColor")));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, 1.0));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
+    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
     //
 
-    print(rule.StringifySymIndexList(_pattern_prefix));
+    // print(rule.StringifySymIndexList(_pattern_prefix));
     // print(_pattern);
   }
 
@@ -180,9 +178,6 @@ void HandleCommand(String cmd, String param) {
   var examples = lsys2d_examples.kExamples;
   log.LogInfo("HandleCommand: ${cmd} ${param}");
   switch (cmd) {
-    case "A":
-      Toggle(querySelector(".about")!);
-      break;
     case "C":
       Toggle(querySelector(".config")!);
       break;
@@ -202,12 +197,6 @@ void HandleCommand(String cmd, String param) {
       gPattern.selectedIndex = (gNumExample + 1) % examples.length;
       gActiveLSystem = null;
       break;
-    case "A+":
-      Show(querySelector(".about")!);
-      break;
-    case "A-":
-      Hide(querySelector(".about")!);
-      break;
     case "F":
       ToggleFullscreen();
       break;
@@ -216,12 +205,6 @@ void HandleCommand(String cmd, String param) {
       break;
     case "C+":
       Show(querySelector(".config")!);
-      break;
-    case "X":
-      String preset = (querySelector("#preset") as SelectElement).value!;
-      gOptions.SetNewSettings(preset);
-
-      gActiveLSystem = null;
       break;
   }
 }
@@ -250,8 +233,7 @@ void animate(num t_num) {
     }
 
     var examples = lsys2d_examples.kExamples;
-    gOptions.SaveToLocalStorage();
-    gActiveLSystem = LSystem(gCanvas, gOptions, Math.Random(seed));
+    gActiveLSystem = LSystem(gCanvas, Math.Random(seed));
     gActiveLSystem!.Init(examples[gNumExample % examples.length]);
   } else {
     LSystem s = gActiveLSystem!;
@@ -271,7 +253,9 @@ void animate(num t_num) {
 }
 
 void main() {
+  rule.RegisterStandardParams();
   OptionsSetup();
+
   SelectElement patterns = querySelector("#pattern") as SelectElement;
   int count = 0;
   for (var desc in lsys2d_examples.kExamples) {

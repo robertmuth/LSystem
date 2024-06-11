@@ -108,7 +108,7 @@ class ModelExtractor extends rule.Plotter {
 
   @override
   void PolyEnd(rule.State s) {
-    assert(_polygon.length >= 3);
+    assert(_polygon.length >= 3, "too few verices: ${_polygon.length}");
     int offset = _gb.AddVerticesTakeOwnership(_polygon);
     _gb.AddAttributesVector3TakeOwnership(aColor, _polygon_color);
     for (int i = 1; i < _polygon.length - 1; ++i) {
@@ -185,7 +185,7 @@ class LSystem {
     _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
 
     // print(rule.StringifySymIndexList(_pattern_prefix));
-    // print(rule.StringifySymIndexList(_pattern));
+    print(rule.StringifySymIndexList(_pattern));
   }
 
   String Info() {
@@ -222,9 +222,6 @@ void HandleCommand(String cmd, String param) {
   var examples = lsys2d_examples.kExamples;
   log.LogInfo("HandleCommand: ${cmd} ${param}");
   switch (cmd) {
-    case "A":
-      Toggle(HTML.querySelector(".about")!);
-      break;
     case "C":
       Toggle(HTML.querySelector(".config")!);
       break;
@@ -271,12 +268,6 @@ void HandleCommand(String cmd, String param) {
       vals[0] = vals[0] * (1.0 + vals[1]);
       desc["p.size"] = "${vals[0]},${vals[1]}";
       gActiveLSystem = null;
-    case "A+":
-      Show(HTML.querySelector(".about")!);
-      break;
-    case "A-":
-      Hide(HTML.querySelector(".about")!);
-      break;
     case "F":
       ToggleFullscreen();
       break;
@@ -293,7 +284,7 @@ void animateLSystem(double t, Scene scene, RenderProgram prog) {
   int active = gPattern.selectedIndex!;
 
   if (gActiveLSystem == null || active != gNumExample) {
-    print("index ${active} vs $gNumExample}");
+    // print("current pattern index ${active} vs $gNumExample}");
     gNumExample = active;
 
     int seed = gOptions.GetInt("randomSeed");
@@ -312,6 +303,8 @@ void animateLSystem(double t, Scene scene, RenderProgram prog) {
 }
 
 void main() {
+  print("Startup");
+  rule.RegisterStandardParams();
   OptionsSetup();
   HTML.SelectElement patterns = HTML.querySelector("#pattern") as HTML.SelectElement;
   int count = 0;
