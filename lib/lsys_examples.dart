@@ -23,10 +23,13 @@ $axis: [FFFFFF^F^F^F^F]
     "offsets": "0,0,0",
     "name": "axes"
   },
+  // ============================================================
+  // plants and trees
+  // ============================================================
   {
     "i": "12",
     "r": r"""
-$plant: [|ffff | @muld(#width, 1.4) FFFF] &&& ^ $D;
+$plant: @setcol(#950) [|ffff | @muld(#width, 1.4) FFFF] &&& ^ $D;
 
 $D: $A $B @muld(#width, 0.7) > $D [@muld(#stepSize, 0.5) F] $flower;
 $B: [--- >>> @muld(#width, 0.7)  @muld(#angleStep, 0.9) $D];
@@ -57,39 +60,7 @@ $Qc: F
     "offsets": "0,0,0",
     "name": "spiral plant"
   },
-  {
-    "i": "20",
-    "r": r"""
 
-$spiral: F $s + @muld(#angleStep, 1.1) > $spiral;
-$s: [@muld(#angleStep, 0.81) @muld(#width, 0.65) && [$b] ^^^^ [$b]];
-$b: F @muld(#width, 0.7) + F + @muld(#angleStep, 1.1) > $b
-""",
-    "p.size": "10,0.1",
-    "p.angle": "10,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "spiral0"
-  },
-  {
-    "i": "20",
-    "r": r"""
-
-$spiral: [$P]|[$P];
-$P: [$A]/////////[$B]/////////[$C]/////////[$D];
-$A: F + @muld(#angleStep, 1.1) > $A;
-$B: F @muld(#width, 0.8) + F + @muld(#angleStep, 1.1) > \$B;
-$C: F @muld(#width, 0.8) ^+ F ^+ @muld(#angleStep, 1.1)  > $C;
-$D: F @muld(#width, 0.8) /^+ F /^ @muld(#angleStep, 1.1) > $D
-""",
-    "p.size": "10,0.1",
-    "p.angle": "10,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "spiral0"
-  },
   /*
   {
     "i": "30",
@@ -125,39 +96,105 @@ $pollenstem:  [@setcol(#222)  @muld(#width, 0.5)  F_F_F  @muld(#width, 2.0) @set
     "name": "axes"
   },
   */
+
   {
-    "i": "18",
+    "i": "5",
+// page 27
     "r": r"""
-$start: [|FFFFFFFFFFF]$leaf;
-$leaf: @setcol(#080) [&G[$c$c$A][$c$c$B][$a][$b]];
-$G: _F_F_F_F_F_F_F_F_F_F_F_F_F;
-$A: [@setcol(#080) + $A {. ] @setcol(#0f0) . $C .};
-$B: [@setcol(#080) - $B {. ] @setcol(#0f0) . $C .};
-$C: _f$C;
-$a: [+$a]$d;
-$b: [-$b]$d;
-$d: _F$d
+$plant:  @setcol(#080) $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
+$internode: F $seg [// & & $leaf] [// ^^ $leaf] F $seg;
+$seg: $seg F $seg;
+$leaf: [' { @setcol(#0f0) +F-FF-F+ | +F-FF-F } ];
+$flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
+$pedicel: FF;
+$wedge: [' ^ F] [@setcol(#ff0) {&&&& -F @setcol(#00f) +F | -F+F }]
 """,
-    "p.size": "10,0.1",
-    "p.angle": "10,0.05",
+    "p.size": "5,0.01",
+    "p.angle": "18.0,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "leaves"
+    "name": "plant-with-flowers"
   },
   {
-    "i": "2",
+    "i": "5",
     "r": r"""
-$start: @setcol(#080)  FF $leaf;
-$leaf: [@setcol(#0f0) {@setrad(#angleStep,30)- F ++++ F ++++ F}]
+$start:  @setcol(#080) A;
+A: [&BL!A]/////'[&BL!A]///////'[&BL!A];
+B: S ///// B;
+S: B L;
+L: [@setcol(#0f0) '''^^{-F+F+F-|-F+F+F}]
 """,
+    "p.size": "10,0.01",
+    "p.angle": "22.5,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "bush-with-leaves"
+  },
+
+  {
+    "i": "12",
+    "r": r"""
+L: FFFA;
+A: [++++++++++++++FC]B^+B[--------------FD]B+BA;
+C: [---------FF][+++++++++FF]B&&+C;
+D: [---------FF][+++++++++FF]B&&-D
+""",
+    "p.size": "10,0.01",
+    "p.angle": "4,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "fern"
+  },
+  {
+    "i": "4",
+    "r": r"""
+$start: A;
+A: / A [++A $flower] -\ A [--A $flower ] +// A;
+$flower: [@setcol(#fff) @setrad(#angleStep,72) {. @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}]
+""",
+    "p.size": "5,0.01",
+    "p.angle": "18,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "vines"
+  },
+
+  {
+    "i": "4",
+    "r": """
+L : BBBBBA;
+A : [++BB[--C][++C][&&C][^^C]A]/////+BBB[--C][++C][&&C][^^C]A;
+B: B;
+B : \\\\B;
+C :
+""",
+    "p.size": "20,0.01",
+    "p.angle": "18,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "tree"
+  },
+  {
+    "i": "4",
+    "r": r"""
+L : B[+L]\\\\\\\\[+L]\\\\\\\\[+L]\\\\\\\\BL;
+B : B\B;
+B : L/B""",
     "p.size": "10,0.01",
     "p.angle": "30,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "simple leaf"
+    "name": "plant"
   },
+  // ============================================================
+  // flowers
+  // ============================================================
   {
     "i": "2",
     "r": r"""
@@ -202,40 +239,41 @@ $wedge: [' ^ F] [{ &&&& -F+F | -F+F }]
     "offsets": "0,0,0",
     "name": "flower2"
   },
+  // ============================================================
+  // leafs
+  // ============================================================
   {
-    "i": "5",
-// page 27
+    "i": "18",
     "r": r"""
-$plant:  @setcol(#080) $internode + [$plant + $flower] -- // [-- $leaf] $internode [++ $leaf] - [$plant $flower] ++ $plant $flower;
-$internode: F $seg [// & & $leaf] [// ^^ $leaf] F $seg;
-$seg: $seg F $seg;
-$leaf: [' { @setcol(#0f0) +F-FF-F+ | +F-FF-F } ];
-$flower: [&&& $pedicel ' / $wedge //// $wedge //// $wedge //// $wedge //// $wedge];
-$pedicel: FF;
-$wedge: [' ^ F] [@setcol(#ff0) {&&&& -F @setcol(#00f) +F | -F+F }]
+$start: [|FFFFFFFFFFF]$leaf;
+$leaf: @setcol(#080) [&G[$c$c$A][$c$c$B][$a][$b]];
+$G: _F_F_F_F_F_F_F_F_F_F_F_F_F;
+$A: [@setcol(#080) + $A {. ] @setcol(#0f0) . $C .};
+$B: [@setcol(#080) - $B {. ] @setcol(#0f0) . $C .};
+$C: _f$C;
+$a: [+$a]$d;
+$b: [-$b]$d;
+$d: _F$d
 """,
-    "p.size": "5,0.01",
-    "p.angle": "18.0,0.05",
+    "p.size": "10,0.1",
+    "p.angle": "10,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "plant-with-flowers"
+    "name": "leaves"
   },
   {
-    "i": "5",
+    "i": "2",
     "r": r"""
-$start:  @setcol(#080) A;
-A: [&BL!A]/////'[&BL!A]///////'[&BL!A];
-B: S ///// B;
-S: B L;
-L: [@setcol(#0f0) '''^^{-F+F+F-|-F+F+F}]
+$start: @setcol(#080)  FF $leaf;
+$leaf: [@setcol(#0f0) {@setrad(#angleStep,30)- F ++++ F ++++ F}]
 """,
     "p.size": "10,0.01",
-    "p.angle": "22.5,0.05",
+    "p.angle": "30,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "bush-with-leaves"
+    "name": "simple leaf"
   },
   {
     "i": "1",
@@ -249,34 +287,41 @@ L: {-F+F+F-|-F+F+F}
     "offsets": "0,0,0",
     "name": "leaf"
   },
+  // ============================================================
+  // Abstract
+  // ============================================================
   {
-    "i": "12",
+    "i": "20",
     "r": r"""
-L: FFFA;
-A: [++++++++++++++FC]B^+B[--------------FD]B+BA;
-C: [---------FF][+++++++++FF]B&&+C;
-D: [---------FF][+++++++++FF]B&&-D
+
+$spiral: F $s + @muld(#angleStep, 1.1) > $spiral;
+$s: [@muld(#angleStep, 0.81) @muld(#width, 0.65) && [$b] ^^^^ [$b]];
+$b: F @muld(#width, 0.7) + F + @muld(#angleStep, 1.1) > $b
 """,
-    "p.size": "10,0.01",
-    "p.angle": "4,0.05",
+    "p.size": "10,0.1",
+    "p.angle": "10,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "fern"
+    "name": "spiral0"
   },
   {
-    "i": "4",
+    "i": "20",
     "r": r"""
-$start: A;
-A: / A [++A $flower] -\ A [--A $flower ] +// A;
-$flower: [@setcol(#fff) @setrad(#angleStep,72) {. @setcol(#00f) /[-F]/[-F]/[-F]/[-F]/[-F]/[-F]}]
+
+$spiral: [$P]|[$P];
+$P: [$A]/////////[$B]/////////[$C]/////////[$D];
+$A: F + @muld(#angleStep, 1.1) > $A;
+$B: F @muld(#width, 0.8) + F + @muld(#angleStep, 1.1) > \$B;
+$C: F @muld(#width, 0.8) ^+ F ^+ @muld(#angleStep, 1.1)  > $C;
+$D: F @muld(#width, 0.8) /^+ F /^ @muld(#angleStep, 1.1) > $D
 """,
-    "p.size": "5,0.01",
-    "p.angle": "18,0.05",
+    "p.size": "10,0.1",
+    "p.angle": "10,0.05",
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "vines"
+    "name": "spiral0"
   },
   {
     "i": "3",
@@ -290,35 +335,6 @@ A: ^\AF^\AFA-F^//AFA&F+//AFA-F/A-/
     "offsets": "0,0,0",
     "name": "hilbert3d"
   },
-  {
-    "i": "4",
-    "r": """
-L : BBBBBA;
-A : [++BB[--C][++C][&&C][^^C]A]/////+BBB[--C][++C][&&C][^^C]A;
-B: B;
-B : \\\\B;
-C :
-""",
-    "p.size": "20,0.01",
-    "p.angle": "18,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "tree"
-  },
-  {
-    "i": "4",
-    "r": r"""
-L : B[+L]\\\\\\\\[+L]\\\\\\\\[+L]\\\\\\\\BL;
-B : B\B;
-B : L/B""",
-    "p.size": "10,0.01",
-    "p.angle": "30,0.05",
-    "s.size": "8.8,7.6",
-    "s.angle": "6.5,0",
-    "offsets": "0,0,0",
-    "name": "plant"
-  }
 ];
 
 List<Map<String, String>> kExamples2d = [
