@@ -1,7 +1,6 @@
 import 'dart:math' as Math;
 import 'dart:html';
 import 'dart:core';
-import 'color.dart';
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
@@ -100,12 +99,10 @@ class LSystem {
   String _name = "";
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
-  AnimatedColor? _ac;
 
   LSystem(this._canvas, Math.Random rng)
       : _rng = rng,
-        _plotter = Canvas2dPlotter(_canvas),
-        _ac = AnimatedColor(rng) {
+        _plotter = Canvas2dPlotter(_canvas) {
     _width = _canvas.width!;
     _height = _canvas.height!;
 
@@ -150,7 +147,6 @@ class LSystem {
 
   void draw(double t) {
     _currentCycle++;
-    _ac!.Update(t);
     List<rule.SymIndex> time_based = [];
 /*
     if (gOptions.GetBool("rotate")) {
