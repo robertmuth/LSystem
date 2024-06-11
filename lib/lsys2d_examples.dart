@@ -24,6 +24,40 @@ $axis: [FFFFFF^F^F^F^F]
     "name": "axes"
   },
   {
+    "i": "12",
+    "r": r"""
+$plant: [|ffff | @muld(#width, 1.4) FFFF] &&& ^ $D;
+
+$D: $A $B @muld(#width, 0.7) > $D [@muld(#stepSize, 0.5) F] $flower;
+$B: [--- >>> @muld(#width, 0.7)  @muld(#angleStep, 0.9) $D];
+$A: &+^ F $leaf $A;
+
+$flower: [@muld(#width, 0.7) $i @setcol(#228) $w
+                        // @setcol(#22f) $w
+                        // @setcol(#448) $w
+                        // @setcol(#44f) $w
+                        // @setcol(#118) $w
+                        // @setcol(#11f) $w];
+$w: [& {- F + F | - F + F}];
+$i:  @muld(#angleStep, 1.1) $i;
+
+$leaf: [--- /  @muld(#width, 0.08) $Qa  $l [$a] [$b]];
+$a: [@setcol(#0f0) + $a {. ] . $C .};
+$b: [@setcol(#080) - $b {. ] . $C .};
+$C: f $C;
+$l: > $l;
+$Qa: $Qb;
+$Qb: $Qc;
+$Qc: F
+""",
+    "p.size": "10,0.1",
+    "p.angle": "30,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "spiral plant"
+  },
+  {
     "i": "20",
     "r": r"""
 
@@ -263,7 +297,8 @@ L : BBBBBA;
 A : [++BB[--C][++C][&&C][^^C]A]/////+BBB[--C][++C][&&C][^^C]A;
 B: B;
 B : \\\\B;
-C :""",
+C :
+""",
     "p.size": "20,0.01",
     "p.angle": "18,0.05",
     "s.size": "8.8,7.6",
