@@ -7,7 +7,6 @@ import 'params.dart';
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
-import 'package:lsystem/logging.dart' as log;
 import 'package:lsystem/webutil.dart';
 
 import 'package:vector_math/vector_math.dart' as VM;
@@ -220,7 +219,7 @@ LSystem? gActiveLSystem = null;
 
 void HandleCommand(String cmd, String param) {
   var examples = lsys2d_examples.kExamples;
-  log.LogInfo("HandleCommand: ${cmd} ${param}");
+  print("HandleCommand: ${cmd} ${param}");
   switch (cmd) {
     case "C":
       Toggle(HTML.querySelector(".config")!);
@@ -329,7 +328,7 @@ void main() {
   log.LogInfo("main: ${w}x${h} ${w2}x${h2}");
 */
   HTML.document.body!.onKeyDown.listen((HTML.KeyboardEvent e) {
-    log.LogInfo("key pressed ${e.keyCode} ${e.target.runtimeType}");
+    print("key pressed ${e.keyCode} ${e.target.runtimeType}");
     if (e.target.runtimeType == HTML.InputElement) {
       return;
     }
@@ -340,12 +339,12 @@ void main() {
 
   HTML.document.body!.onClick.listen((HTML.MouseEvent ev) {
     if (ev.target.runtimeType != HTML.CanvasElement) return;
-    log.LogInfo("click ${ev.target.runtimeType}");
+    print("click ${ev.target.runtimeType}");
     HandleCommand("C", "");
   });
 
   HTML.ElementList<HTML.Element> buttons = HTML.document.body!.querySelectorAll("button");
-  log.LogInfo("found ${buttons.length} buttons");
+  print("found ${buttons.length} buttons");
   buttons.onClick.listen((HTML.Event ev) {
     String cmd = (ev.target as HTML.Element).dataset['cmd']!;
     String param = (ev.target as HTML.Element).dataset['param']!;

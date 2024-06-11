@@ -1,7 +1,6 @@
 import 'dart:html';
 import 'dart:math' as Math;
 import 'package:lsystem/option.dart';
-import 'package:lsystem/logging.dart' as log;
 
 Options gOptions = Options("lsystem");
 
@@ -28,8 +27,6 @@ void OptionsSetup() {
     OptionElement o = new OptionElement(data: name, value: name);
     presets.append(o);
   }
-
-  log.gLogLevel = gOptions.GetInt("logLevel");
 }
 
 // Raw colormap extracted from pollockEFF.gif

@@ -6,7 +6,6 @@ import 'color.dart';
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
-import 'package:lsystem/logging.dart' as log;
 import 'package:lsystem/webutil.dart';
 
 import 'package:vector_math/vector_math.dart' as VM;
@@ -111,7 +110,7 @@ class LSystem {
     _width = _canvas.width!;
     _height = _canvas.height!;
 
-    log.LogInfo("lsystem: ${_width}x${_height} ${_currentCycle}");
+    print("lsystem: ${_width}x${_height} ${_currentCycle}");
   }
 
   void Init(Map<String, String> desc) {
@@ -176,7 +175,7 @@ LSystem? gActiveLSystem = null;
 
 void HandleCommand(String cmd, String param) {
   var examples = lsys2d_examples.kExamples;
-  log.LogInfo("HandleCommand: ${cmd} ${param}");
+  print("HandleCommand: ${cmd} ${param}");
   switch (cmd) {
     case "C":
       Toggle(querySelector(".config")!);
@@ -220,13 +219,13 @@ void animate(num t_num) {
     final int h = document.body!.clientHeight;
     final int w2 = window.innerWidth!;
     final int h2 = window.innerHeight!;
-    log.LogInfo("restart ${w}x${h} ${w2}x${h2}");
+    print("restart ${w}x${h} ${w2}x${h2}");
     //DivElement div = querySelector("#canvasdiv");
     //LogInfo("div dimensions: ${div.clientWidth}x${div.clientHeight}");
 
     gCanvas.width = w2;
     gCanvas.height = h2;
-    log.LogInfo("canvas dimensions: ${gCanvas.width}x${gCanvas.height}");
+    print("canvas dimensions: ${gCanvas.width}x${gCanvas.height}");
     int seed = gOptions.GetInt("randomSeed");
     if (seed == 0) {
       seed = new DateTime.now().millisecondsSinceEpoch;
@@ -274,10 +273,10 @@ void main() {
     // just confirm we can parse it
     lsys2d.ParseRules(example["r"]!.split(";"));
   }
-  log.LogInfo("main: ${w}x${h} ${w2}x${h2}");
+  print("main: ${w}x${h} ${w2}x${h2}");
 
   document.body!.onKeyDown.listen((KeyboardEvent e) {
-    log.LogInfo("key pressed ${e.keyCode} ${e.target.runtimeType}");
+    print("key pressed ${e.keyCode} ${e.target.runtimeType}");
     if (e.target.runtimeType == InputElement) {
       return;
     }
@@ -288,12 +287,12 @@ void main() {
 
   document.body!.onClick.listen((MouseEvent ev) {
     if (ev.target.runtimeType != CanvasElement) return;
-    log.LogInfo("click ${ev.target.runtimeType}");
+    print("click ${ev.target.runtimeType}");
     HandleCommand("C", "");
   });
 
   ElementList<Element> buttons = document.body!.querySelectorAll("button");
-  log.LogInfo("found ${buttons.length} buttons");
+  print("found ${buttons.length} buttons");
   buttons.onClick.listen((Event ev) {
     String cmd = (ev.target as Element).dataset['cmd']!;
     String param = (ev.target as Element).dataset['param']!;
