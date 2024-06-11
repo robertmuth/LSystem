@@ -143,7 +143,6 @@ class LSystem {
   Map<String, List<rule.Rule>> _rules = {};
   List<rule.TokenIndex> _pattern_prefix = [];
   List<rule.TokenIndex> _pattern = [];
-  String _name = "";
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
   Map<String, String> _desc = {};
