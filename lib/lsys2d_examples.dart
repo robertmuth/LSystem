@@ -27,7 +27,22 @@ $axis: [FFFFFF^F^F^F^F]
     "i": "20",
     "r": r"""
 
-$start: [$P]|[$P];
+$spiral: F $s + @muld(#angleStep, 1.1) > $spiral;
+$s: [@muld(#angleStep, 0.81) @muld(#width, 0.65) && [$b] ^^^^ [$b]];
+$b: F @muld(#width, 0.7) + F + @muld(#angleStep, 1.1) > $b
+""",
+    "p.size": "10,0.1",
+    "p.angle": "10,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "spiral0"
+  },
+  {
+    "i": "20",
+    "r": r"""
+
+$spiral: [$P]|[$P];
 $P: [$A]/////////[$B]/////////[$C]/////////[$D];
 $A: F + @muld(#angleStep, 1.1) > $A;
 $B: F @muld(#width, 0.8) + F + @muld(#angleStep, 1.1) > \$B;
@@ -39,7 +54,7 @@ $D: F @muld(#width, 0.8) /^+ F /^ @muld(#angleStep, 1.1) > $D
     "s.size": "8.8,7.6",
     "s.angle": "6.5,0",
     "offsets": "0,0,0",
-    "name": "spiral"
+    "name": "spiral0"
   },
   /*
   {
