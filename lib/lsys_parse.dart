@@ -1,3 +1,4 @@
+// LSystem Parsing Code
 import 'dart:core';
 import 'package:lsystem/lsys_rule.dart' as rule;
 import 'package:vector_math/vector_math.dart' as VM;
@@ -13,33 +14,29 @@ https://github.com/benvan/lsys
  F	       Move forward by line length drawing or recording a vertex
  f	       Move forward by line length without drawing or recording a vertex
  .         Record vertex without moving
- +	         Turn left by turning angle
- -	         Turn right by turning angle
- |	         Reverse direction (ie: turn by 180 degrees)
- [	         Push current drawing state onto stack
- ]	         Pop current drawing state from the stack
- #	 xx      Increment the line width by line width increment
- !	  **     Decrement the line width by line width increment
- @	 xx    Draw a dot with line width radius
- {	 xx      Open a polygon
- }	 xx      Close a polygon and fill it with fill colour
+
+ +	       Turn left by turning angle
+ -	       Turn right by turning angle
+ /
+ \
+
+^
+&
+
+_          apply gravity
+
+ |	       Reverse direction (ie: turn by 180 degrees)
+
+ [	       Push current drawing state onto stack
+ ]	       Pop current drawing state from the stack
+
+
+ {	       Open a polygon
+ }	       Close a polygon and fill it with fill colour
+
  >	         Multiply the line length by the line length scale factor
  <	         Divide the line length by the line length scale factor
- &	  **     Swap the meaning of + and -
- (	         Decrement turning angle by turning angle increment
- )	         Increment turning angle by turning angle increment
 */
-
-// Subset supported
-Set<String> kValid = {
-  "F", // draw forwards by [size]
-  "+", "-", // rotate by +/-[angle]
-  ">", "<", // increase/decrease [size] by [size-growth]
-  ")", "(", // increase / decrease [angle] by [angle-growth]
-  "[", "]", // push / pop state
-  "!", // negate [angle]
-  "|", // increment [angle] by 180;
-};
 
 // This initialization will be delayed by the dart runtime
 final int xAngleGrowth = rule.ParamDescriptor.Register("angle_growth", () => 0.0, (x) => x);
@@ -62,7 +59,7 @@ Set<String> ExtractSymbols(List<String> rules) {
   return symbols;
 }
 
-List<rule.SymIndex> ExtractAxiom(List<String> rules) {
+List<rule.TokenIndex> ExtractAxiom(List<String> rules) {
   for (String r in rules) {
     if (r.startsWith("#")) continue;
     List<String> part = r.split(":");
@@ -70,64 +67,64 @@ List<rule.SymIndex> ExtractAxiom(List<String> rules) {
     assert(part.length == 2, "bad rule ${part}");
     var s = part[0].trim();
     if (s.length > 1) {
-      return [rule.Sym.Symbol(s)];
+      return [rule.Token.Symbol(s)];
     } else {
-      return [rule.Sym.ActiveSymbol(s)];
+      return [rule.Token.ActiveSymbol(s)];
     }
   }
   assert(false);
   return [];
 }
 
-rule.SymIndex TranslateToSym(String s) {
+rule.TokenIndex TranslateToSym(String s) {
   switch (s) {
     case "_":
-      return rule.Sym.Param(rule.Kind.GRAVITY_CONST, rule.xDir, 0.2);
+      return rule.Token.Param(rule.Kind.GRAVITY_CONST, rule.xDir, 0.2);
     case "!":
-      return rule.Sym.Param(rule.Kind.MUL_CONST, rule.xAngleStep, -1.0);
+      return rule.Token.Param(rule.Kind.MUL_CONST, rule.xAngleStep, -1.0);
     case "|":
-      return rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.xDir, Math.pi);
+      return rule.Token.Param(rule.Kind.YAW_ADD_CONST, rule.xDir, Math.pi);
     //
     case "+":
-      return rule.Sym.Param(rule.Kind.YAW_ADD, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.YAW_ADD, rule.xDir, rule.xAngleStep);
     case "-":
-      return rule.Sym.Param(rule.Kind.YAW_SUB, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.YAW_SUB, rule.xDir, rule.xAngleStep);
     //
     case "^":
-      return rule.Sym.Param(rule.Kind.PITCH_ADD, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.PITCH_ADD, rule.xDir, rule.xAngleStep);
     case "&":
-      return rule.Sym.Param(rule.Kind.PITCH_SUB, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.PITCH_SUB, rule.xDir, rule.xAngleStep);
     //
     case "/":
-      return rule.Sym.Param(rule.Kind.ROLL_ADD, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.ROLL_ADD, rule.xDir, rule.xAngleStep);
     case r"\":
-      return rule.Sym.Param(rule.Kind.ROLL_SUB, rule.xDir, rule.xAngleStep);
+      return rule.Token.Param(rule.Kind.ROLL_SUB, rule.xDir, rule.xAngleStep);
     //
     case "[":
-      return rule.Sym.Simple(rule.Kind.STACK_PUSH);
+      return rule.Token.Simple(rule.Kind.STACK_PUSH);
     case "]":
-      return rule.Sym.Simple(rule.Kind.STACK_POP);
+      return rule.Token.Simple(rule.Kind.STACK_POP);
     //
     case "{":
-      return rule.Sym.Simple(rule.Kind.POLY_START);
+      return rule.Token.Simple(rule.Kind.POLY_START);
     case "}":
-      return rule.Sym.Simple(rule.Kind.POLY_END);
+      return rule.Token.Simple(rule.Kind.POLY_END);
     //
     case "'":
-      return rule.Sym.Simple(rule.Kind.COLOR_NEXT);
+      return rule.Token.Simple(rule.Kind.COLOR_NEXT);
     case '<':
-      return rule.Sym.Param(rule.Kind.GROW, rule.xStepSize, xStepGrowth);
+      return rule.Token.Param(rule.Kind.GROW, rule.xStepSize, xStepGrowth);
     case '>':
-      return rule.Sym.Param(rule.Kind.SHRINK, rule.xStepSize, xStepGrowth);
+      return rule.Token.Param(rule.Kind.SHRINK, rule.xStepSize, xStepGrowth);
     case '(':
-      return rule.Sym.Param(rule.Kind.SHRINK, rule.xAngleStep, xAngleGrowth);
+      return rule.Token.Param(rule.Kind.SHRINK, rule.xAngleStep, xAngleGrowth);
     case ')':
-      return rule.Sym.Param(rule.Kind.GROW, rule.xAngleStep, xAngleGrowth);
+      return rule.Token.Param(rule.Kind.GROW, rule.xAngleStep, xAngleGrowth);
     default:
       print("unrecognized char [${s}]");
       assert(false);
       //assert("a" <= s && s <= "z");
-      return rule.Sym.Symbol(s);
+      return rule.Token.Symbol(s);
   }
 }
 
@@ -139,24 +136,24 @@ bool IsIdChar(String s) {
   return false;
 }
 
-rule.SymIndex InterpretEscape(List<String> escape) {
+rule.TokenIndex InterpretEscape(List<String> escape) {
   // print("@@@@: ${escape} ${rule.xLineColor}");
   if (escape[0] == "setrad") {
     int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
     double val = double.parse(escape[2]) / 180.0 * Math.pi;
-    return rule.Sym.SetParam(index, val);
+    return rule.Token.SetParam(index, val);
   } else if (escape[0] == "setstr") {
     int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
-    return rule.Sym.SetParam(index, escape[2]);
+    return rule.Token.SetParam(index, escape[2]);
   } else if (escape[0] == "setcol") {
-    return rule.Sym.SetParam(rule.xLineColor, escape[1]);
+    return rule.Token.SetParam(rule.xLineColor, escape[1]);
   } else if (escape[0] == "muld") {
     int index = rule.ParamDescriptor.GetIndexByName(escape[1]);
     double val = double.parse(escape[2]);
-    return rule.Sym.Param(rule.Kind.MUL_CONST, index, val);
+    return rule.Token.Param(rule.Kind.MUL_CONST, index, val);
   } else {
     assert(false);
-    return rule.Sym.Symbol("@@INVALID@@");
+    return rule.Token.Symbol("@@INVALID@@");
   }
 }
 
@@ -166,8 +163,8 @@ enum ParseMode { REGULAR, ID, ESCAPE }
 // where symbols is {L, F}
 // output is a partition of the string where each symbol is isolated, e.g.:
 // "F", "[+", "F", "F", "][", ...
-List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
-  List<rule.SymIndex> out = [];
+List<rule.TokenIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
+  List<rule.TokenIndex> out = [];
 
   String name = "";
   List<String> escape = [];
@@ -181,7 +178,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
         name += c;
         continue;
       } else {
-        out.add(rule.Sym.Symbol(name));
+        out.add(rule.Token.Symbol(name));
         mode = ParseMode.REGULAR;
         // falls through
       }
@@ -199,7 +196,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
           escape.add("");
         } else if (IsIdChar(c)) {
           // Assume Single Character Symbols are active for now
-          out.add(rule.Sym.ActiveSymbol(c));
+          out.add(rule.Token.ActiveSymbol(c));
         } else {
           out.add(TranslateToSym(c));
         }
@@ -217,7 +214,7 @@ List<rule.SymIndex> ParseRightSideOfProduction(String s, Set<String> symbols) {
     }
   }
   if (mode == ParseMode.ID) {
-    out.add(rule.Sym.Symbol(name));
+    out.add(rule.Token.Symbol(name));
   }
   return out;
 }
@@ -266,31 +263,31 @@ Map<String, List<rule.Rule>> ParseRules(List<String> rule_strs) {
   }
 */
 
-List<rule.SymIndex> InitPrefix(Map<String, String> desc, VM.Vector3 pos, VM.Quaternion dir) {
-  List<rule.SymIndex> out = [];
-  out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xPos, pos));
-  out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xDir, dir));
-  out.add(rule.Sym.Param(rule.Kind.SET_CONST, rule.xWidth, 1.0));
+List<rule.TokenIndex> InitPrefix(Map<String, String> desc, VM.Vector3 pos, VM.Quaternion dir) {
+  List<rule.TokenIndex> out = [];
+  out.add(rule.Token.Param(rule.Kind.SET_CONST, rule.xPos, pos));
+  out.add(rule.Token.Param(rule.Kind.SET_CONST, rule.xDir, dir));
+  out.add(rule.Token.Param(rule.Kind.SET_CONST, rule.xWidth, 1.0));
 
   var size = desc["p.size"]!.split(",");
   assert(size.length >= 1, "${size}");
-  out.add(rule.Sym.SetParam(rule.xStepSize, double.parse(size[0])));
+  out.add(rule.Token.SetParam(rule.xStepSize, double.parse(size[0])));
   double size_growth = size.length > 1 ? double.parse(size[1]) : 0.01;
-  out.add(rule.Sym.SetParam(xStepGrowth, size_growth));
+  out.add(rule.Token.SetParam(xStepGrowth, size_growth));
   //
   var angle = desc["p.angle"]!.split(",");
   assert(angle.length >= 1);
-  out.add(rule.Sym.SetParam(rule.xAngleStep, double.parse(angle[0]) / 180.0 * Math.pi));
+  out.add(rule.Token.SetParam(rule.xAngleStep, double.parse(angle[0]) / 180.0 * Math.pi));
   double angle_growth = angle.length > 1 ? double.parse(angle[1]) : 0.05;
-  out.add(rule.Sym.SetParam(xAngleGrowth, angle_growth));
+  out.add(rule.Token.SetParam(xAngleGrowth, angle_growth));
   //
 
   if (desc.containsKey("offsets")) {
     var offsets = desc["offsets"]!.split(",");
     assert(offsets.length == 3);
-    out.add(rule.Sym.Param(rule.Kind.ADD_CONST, rule.xPos,
+    out.add(rule.Token.Param(rule.Kind.ADD_CONST, rule.xPos,
         VM.Vector3(double.parse(offsets[0]), double.parse(offsets[1]), 0.0)));
-    out.add(rule.Sym.Param(
+    out.add(rule.Token.Param(
         rule.Kind.YAW_ADD_CONST, rule.xDir, double.parse(offsets[2]) / 180.0 * Math.pi));
   }
   return out;

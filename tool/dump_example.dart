@@ -68,10 +68,10 @@ void main(List<String> args) {
       print(r);
     }
   }
-  List<rule.SymIndex> pattern_prefix = [];
+  List<rule.TokenIndex> pattern_prefix = [];
   pattern_prefix.addAll(lsys2d.InitPrefix(desc, VM.Vector3(0, 0, 0), VM.Quaternion.euler(0, 0, 0)));
 
-  List<rule.SymIndex> pattern = [rule.Sym.Symbol("L")];
+  List<rule.TokenIndex> pattern = [rule.Token.Symbol("L")];
   int iterations = int.parse(desc["i"]!);
   for (int i = 0; i < iterations; ++i) {
     pattern = rule.ExpandOneStep(pattern, rules, rng);

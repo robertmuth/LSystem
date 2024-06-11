@@ -1354,3 +1354,7 @@ void AngleGrow(Map<String, String> desc) {
 void AngleShrink(Map<String, String> desc) {
   GenericShrink(desc, "p.angle");
 }
+
+String Info(Map<String, String> desc) {
+  return "${desc['name']} i:${desc['i']} p.size:${desc['p.size']} p.angle:${desc['p.angle']}";
+}

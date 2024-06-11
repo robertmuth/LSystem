@@ -1,3 +1,4 @@
+// L-System engine code
 import 'dart:math' as Math;
 import 'package:vector_math/vector_math.dart' as VM;
 
@@ -5,13 +6,15 @@ import 'package:sprintf/sprintf.dart';
 
 enum Kind {
   INVALID,
+  // operations with an immediate value
   SET_CONST,
   ADD_CONST,
   MUL_CONST,
+  // operations with a stored value
   SUB,
   ADD,
   MUL,
-  //
+  //  apply gravity to current direction, i.e. pull it down a little
   GRAVITY_CONST,
   //
   YAW_ADD,
@@ -28,14 +31,17 @@ enum Kind {
   //
   GROW,
   SHRINK,
-  // also marks end of parameter
+  // move forward without side-effect
   SYMBOL,
+  // move forward and either draw a line or record a vertex on a surface
   ACTIVE_SYMBOL,
-  //
+  // push current state on stack
   STACK_PUSH,
   STACK_POP,
+  // Start a surface
   POLY_START,
   POLY_END,
+  //
   COLOR_NEXT,
   //
 }
@@ -96,58 +102,62 @@ bool KindIsParameter(Kind k) {
   return (Kind.SET_CONST as int) <= (k as int) && (k as int) <= (Kind.SHRINK as int);
 }
 
-typedef SymIndex = int;
-List<Sym> GlobalSyms = [];
+// Since there are only very few unique tokens we intern them and use
+// this index to refer to them
+typedef TokenIndex = int;
+List<Token> gTokenPool = [];
 
-class Sym {
+// Represents on component of a L-System rule
+class Token {
   Kind kind;
   String text = "";
   int field = -1;
   dynamic parameter = null;
 
-  Sym(this.kind, [this.text = "", this.field = -1, this.parameter = null]);
+  Token(this.kind, [this.text = "", this.field = -1, this.parameter = null]);
 
-  static SymIndex GetIndexForSymbo(Sym sym) {
-    for (int i = 0; i < GlobalSyms.length; ++i) {
-      if (GlobalSyms[i] == sym) return (i << 8) + sym.kind.index;
+  static TokenIndex GetIndexForSymbo(Token sym) {
+    for (int i = 0; i < gTokenPool.length; ++i) {
+      if (gTokenPool[i] == sym) return (i << 8) + sym.kind.index;
     }
-    GlobalSyms.add(sym);
-    return ((GlobalSyms.length - 1) << 8) + sym.kind.index;
+    gTokenPool.add(sym);
+    return ((gTokenPool.length - 1) << 8) + sym.kind.index;
   }
 
-  static Sym GetSymbolForIndex(SymIndex i) {
-    return GlobalSyms[i >> 8];
+  static Token GetSymbolForIndex(TokenIndex i) {
+    return gTokenPool[i >> 8];
   }
 
-  static SymIndex Simple(Kind kind) {
-    return GetIndexForSymbo(Sym(kind));
+  static TokenIndex Simple(Kind kind) {
+    return GetIndexForSymbo(Token(kind));
   }
 
-  static SymIndex Symbol(String text) {
-    return GetIndexForSymbo(Sym(Kind.SYMBOL, text));
+  static TokenIndex Symbol(String text) {
+    return GetIndexForSymbo(Token(Kind.SYMBOL, text));
   }
 
-  static SymIndex ActiveSymbol(String text) {
-    return GetIndexForSymbo(Sym(Kind.ACTIVE_SYMBOL, text));
+  static TokenIndex ActiveSymbol(String text) {
+    return GetIndexForSymbo(Token(Kind.ACTIVE_SYMBOL, text));
   }
 
-  static SymIndex Param(Kind kind, int name, dynamic parameter) {
-    return GetIndexForSymbo(Sym(kind, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
-  }
-
-  static SymIndex SetParam(int name, dynamic parameter) {
+  static TokenIndex Param(Kind kind, int name, dynamic parameter) {
     return GetIndexForSymbo(
-        Sym(Kind.SET_CONST, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
+        Token(kind, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
   }
 
-  static SymIndex AddParam(int name, dynamic parameter) {
+  static TokenIndex SetParam(int name, dynamic parameter) {
     return GetIndexForSymbo(
-        Sym(Kind.ADD_CONST, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
+        Token(Kind.SET_CONST, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
+  }
+
+  static TokenIndex AddParam(int name, dynamic parameter) {
+    return GetIndexForSymbo(
+        Token(Kind.ADD_CONST, ParamDescriptor.gAllDescriptors[name].name, name, parameter));
   }
 
   @override
   bool operator ==(Object o) {
-    Sym other = o as Sym;
+    Token other = o as Token;
     return kind == other.kind && text == other.text && parameter == other.parameter;
   }
 
@@ -190,17 +200,17 @@ class Sym {
   }
 }
 
-String StringifySymIndexList(List<SymIndex> syms) {
+String StringifySymIndexList(List<TokenIndex> syms) {
   List<String> rhs = [];
-  for (SymIndex i in syms) {
-    rhs.add("${Sym.GetSymbolForIndex(i)}");
+  for (TokenIndex i in syms) {
+    rhs.add("${Token.GetSymbolForIndex(i)}");
   }
   return rhs.join(" ");
 }
 
 class Rule {
   String head;
-  List<SymIndex> expansion;
+  List<TokenIndex> expansion;
 
   Rule(this.head, this.expansion);
 
@@ -210,16 +220,17 @@ class Rule {
   }
 }
 
-List<SymIndex> ExpandOneStep(List<SymIndex> input, Map<String, List<Rule>> rules, Math.Random rng) {
+List<TokenIndex> ExpandOneStep(
+    List<TokenIndex> input, Map<String, List<Rule>> rules, Math.Random rng) {
   final start = DateTime.now();
-  List<SymIndex> out = [];
-  for (SymIndex i in input) {
+  List<TokenIndex> out = [];
+  for (TokenIndex i in input) {
     Kind kind = Kind.values[i & 0xff];
     if (kind != Kind.SYMBOL && kind != Kind.ACTIVE_SYMBOL) {
       out.add(i);
       continue;
     }
-    Sym s = Sym.GetSymbolForIndex(i);
+    Token s = Token.GetSymbolForIndex(i);
 
     var x = rules[s.text];
     if (x == null) {
@@ -279,7 +290,7 @@ class State {
     _state[key] = val;
   }
 
-  void Update(Sym sym) {
+  void Update(Token sym) {
     // print("@@@@@ UPDATE ${sym}");
     dynamic val;
     switch (sym.kind) {
@@ -391,17 +402,17 @@ void applyQuaternion(VM.Vector3 v, VM.Quaternion q) {
 }
 
 // Render a Symbol String (derived from an L-System) using the Plotter
-void RenderAll(List<SymIndex> startup, List<SymIndex> main, Plotter plotter) {
+void RenderAll(List<TokenIndex> startup, List<TokenIndex> main, Plotter plotter) {
   List<State> stack = [State()..Init()];
-  for (SymIndex i in startup) {
-    Sym s = Sym.GetSymbolForIndex(i);
+  for (TokenIndex i in startup) {
+    Token s = Token.GetSymbolForIndex(i);
     stack.last.Update(s);
   }
 
   bool in_polygon = false;
   plotter.Init(stack.last);
-  for (SymIndex i in main) {
-    Sym s = Sym.GetSymbolForIndex(i);
+  for (TokenIndex i in main) {
+    Token s = Token.GetSymbolForIndex(i);
     switch (s.kind) {
       case Kind.SYMBOL:
         break;
@@ -484,11 +495,11 @@ class PatternInfo {
   int stack_pushes = 0;
   int line_count = 0;
 
-  PatternInfo(List<SymIndex> pattern) {
+  PatternInfo(List<TokenIndex> pattern) {
     length = pattern.length;
     int curr = 0;
-    for (SymIndex i in pattern) {
-      Sym s = Sym.GetSymbolForIndex(i);
+    for (TokenIndex i in pattern) {
+      Token s = Token.GetSymbolForIndex(i);
       if (s.kind == Kind.STACK_PUSH) {
         ++stack_pushes;
         ++curr;

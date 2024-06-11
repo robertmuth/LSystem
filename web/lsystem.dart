@@ -28,11 +28,7 @@ double HexDigitToColorComponent(String s) {
 class ModelExtractor extends rule.Plotter {
   //VM.Vector3 _last = VM.Vector3.zero();
 
-  //final Material _mat1 = Material("mat1")..SetUniform(uColor, ColorBlue);
-  final Material _mat2 = Material("mat2")..SetUniform(uColor, ColorRed);
-  //final Material _mat3 = Material("mat3")..SetUniform(uColor, ColorGreen);
-  //final Material _mat4 = Material("mat4")..SetUniform(uColor, ColorCyan);
-  final Material _mat5 = Material("plane")..SetUniform(uColor, ColorGray8);
+  final Material _mat = Material("mat");
   GeometryBuilder _gb = GeometryBuilder();
   List<VM.Vector3> _polygon = [];
   List<VM.Vector3> _polygon_color = [];
@@ -124,12 +120,12 @@ class ModelExtractor extends rule.Plotter {
   void UpdateScene(Scene scene, RenderProgram prog) {
     var start = DateTime.now();
     scene.removeAll();
-    var ground = CubeGeometry(x: 20.0, y: 0.4, z: 20.0);
+    var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
     ground.EnableAttribute(aColor);
     ground.AddAttributesVector3TakeOwnership(aColor, List.filled(ground.vertices.length, ColorRed));
-    scene.add(Node("cube", GeometryBuilderToMeshData("ground", prog, ground), _mat5)
+    scene.add(Node("cube", GeometryBuilderToMeshData("ground", prog, ground), _mat)
       ..setPos(0.0, -10.0, 0.0));
-    scene.add(Node("tree", GeometryBuilderToMeshData("tree", prog, _gb), _mat2));
+    scene.add(Node("tree", GeometryBuilderToMeshData("tree", prog, _gb), _mat));
     var stop = DateTime.now();
     print("3d mesh creation took ${stop.difference(start)}");
   }
@@ -145,22 +141,23 @@ class LSystem {
   ModelExtractor _plotter;
 
   Map<String, List<rule.Rule>> _rules = {};
-  List<rule.SymIndex> _pattern_prefix = [];
-  List<rule.SymIndex> _pattern = [];
+  List<rule.TokenIndex> _pattern_prefix = [];
+  List<rule.TokenIndex> _pattern = [];
   String _name = "";
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
+  Map<String, String> _desc = {};
 
   LSystem(Math.Random rng)
       : _rng = rng,
         _plotter = ModelExtractor() {}
 
   void Init(Map<String, String> desc) {
-    _name = desc["name"]!;
+    print("Lsystem: ${lsys_examples.Info(desc)}");
+    _desc = desc;
     List<String> rule_strs = desc["r"]!.split(";");
 
     _rules = parse.ParseRules(rule_strs);
-    print("Lsystem: ${_name}");
     for (var rs in _rules.values) {
       for (var r in rs) {
         print(r);
@@ -179,20 +176,20 @@ class LSystem {
     _pattern_prefix.addAll(
         parse.InitPrefix(desc, VM.Vector3(0.0, 0.0, 0.0), VM.Quaternion.euler(0.0, 0.0, 0.0)));
 
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, 1.0));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xWidth, 1.0));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xLineColor, "#fff"));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xBackgroundColor, "#000"));
 
     // print(rule.StringifySymIndexList(_pattern_prefix));
     print(rule.StringifySymIndexList(_pattern));
   }
 
   String Info() {
-    return "[${_name}] ${_info}";
+    return "${lsys_examples.Info(_desc)} ${_info}";
   }
 
   void draw(double t, Scene scene, RenderProgram prog) {
-    List<rule.SymIndex> time_based = [];
+    List<rule.TokenIndex> time_based = [];
 /*
     if (gOptions.GetBool("rotate")) {
       time_based.add(rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.pDir, t / 100 * 360));
@@ -377,7 +374,6 @@ void main() {
     orbit.animate(elapsed);
     phasePerspective.Draw();
     String extra = gActiveLSystem!.Info();
-
     webutil.UpdateFrameCount(_lastTimeMs, gFps, extra);
 
     HTML.window.animationFrame.then(animate);

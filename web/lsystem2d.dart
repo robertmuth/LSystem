@@ -96,8 +96,8 @@ class LSystem {
   int _width = 0;
   int _height = 0;
   Map<String, List<rule.Rule>> _rules = {};
-  List<rule.SymIndex> _pattern_prefix = [];
-  List<rule.SymIndex> _pattern = [];
+  List<rule.TokenIndex> _pattern_prefix = [];
+  List<rule.TokenIndex> _pattern = [];
   String _name = "";
   rule.PatternInfo _info = rule.PatternInfo([]);
   Math.Random _rng;
@@ -134,9 +134,9 @@ class LSystem {
     _pattern_prefix.addAll(parse.InitPrefix(
         desc, VM.Vector3(_width / 2, _height / 2, 0.0), VM.Quaternion.euler(0, 0, 1.0 * Math.pi)));
 
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xWidth, 1.0));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xLineColor, "#fff"));
-    _pattern_prefix.add(rule.Sym.SetParam(rule.xBackgroundColor, "#000"));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xWidth, 1.0));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xLineColor, "#fff"));
+    _pattern_prefix.add(rule.Token.SetParam(rule.xBackgroundColor, "#000"));
     //
 
     // print(rule.StringifySymIndexList(_pattern_prefix));
@@ -149,7 +149,7 @@ class LSystem {
 
   void draw(double t) {
     _currentCycle++;
-    List<rule.SymIndex> time_based = [];
+    List<rule.TokenIndex> time_based = [];
 /*
     if (gOptions.GetBool("rotate")) {
       time_based.add(rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.pDir, t / 100 * 360));
