@@ -24,6 +24,59 @@ $axis: [FFFFFF^F^F^F^F]
     "name": "axes"
   },
   {
+    "i": "20",
+    "r": r"""
+
+$start: [$P]|[$P];
+$P: [$A]/////////[$B]/////////[$C]/////////[$D];
+$A: F + @muld(#angleStep, 1.1) > $A;
+$B: F @muld(#width, 0.8) + F + @muld(#angleStep, 1.1) > \$B;
+$C: F @muld(#width, 0.8) ^+ F ^+ @muld(#angleStep, 1.1)  > $C;
+$D: F @muld(#width, 0.8) /^+ F /^ @muld(#angleStep, 1.1) > $D
+""",
+    "p.size": "10,0.1",
+    "p.angle": "10,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "spiral"
+  },
+  /*
+  {
+    "i": "30",
+    "r": r"""
+$start: $S//ff;
+$s: [/////////[$A]++^^^^^^^^^ff>&&&&&&&&&[$B][$D]];
+$D: ^F$D;
+$A:[^f$A{.].;
+$B: $B^.f.}
+""",
+    "p.size": "10,0.01",
+    "p.angle": "10,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "axes"
+  },
+  */
+  /*
+  {
+    "i": "3",
+    "r": r"""
+$start: @setcol(#080) FF $flower;
+$flower: [&! e /(90)w /(90)w /(90)w /(90)w/vy/vy/vy/vy/vy/vy/vy/vy/vy/yv/vy/vy/vy/vy/vy/vy/vy/vy]
+
+$pollenstem:  [@setcol(#222)  @muld(#width, 0.5)  F_F_F  @muld(#width, 2.0) @setcol(#822) _F ]
+""",
+    "p.size": "10,0.01",
+    "p.angle": "90,0.05",
+    "s.size": "8.8,7.6",
+    "s.angle": "6.5,0",
+    "offsets": "0,0,0",
+    "name": "axes"
+  },
+  */
+  {
     "i": "18",
     "r": r"""
 $start: [|FFFFFFFFFFF]$leaf;
