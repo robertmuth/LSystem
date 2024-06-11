@@ -2,8 +2,6 @@ import 'dart:math' as Math;
 import 'dart:html' as HTML;
 import 'dart:core';
 
-import 'params.dart';
-
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
 import 'package:lsystem/rule.dart' as rule;
@@ -286,7 +284,7 @@ void animateLSystem(double t, Scene scene, RenderProgram prog) {
     // print("current pattern index ${active} vs $gNumExample}");
     gNumExample = active;
 
-    int seed = gOptions.GetInt("randomSeed");
+    int seed = 666;
     if (seed == 0) {
       seed = new DateTime.now().millisecondsSinceEpoch;
     }
@@ -304,7 +302,6 @@ void animateLSystem(double t, Scene scene, RenderProgram prog) {
 void main() {
   print("Startup");
   rule.RegisterStandardParams();
-  OptionsSetup();
   HTML.SelectElement patterns = HTML.querySelector("#pattern") as HTML.SelectElement;
   int count = 0;
   for (var desc in lsys2d_examples.kExamples) {

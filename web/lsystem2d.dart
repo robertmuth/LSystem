@@ -1,7 +1,6 @@
 import 'dart:math' as Math;
 import 'dart:html';
 import 'dart:core';
-import 'params.dart';
 import 'color.dart';
 import 'package:lsystem/lsys2d_examples.dart' as lsys2d_examples;
 import 'package:lsystem/lsys2d.dart' as lsys2d;
@@ -226,7 +225,7 @@ void animate(num t_num) {
     gCanvas.width = w2;
     gCanvas.height = h2;
     print("canvas dimensions: ${gCanvas.width}x${gCanvas.height}");
-    int seed = gOptions.GetInt("randomSeed");
+    int seed = 666;
     if (seed == 0) {
       seed = new DateTime.now().millisecondsSinceEpoch;
     }
@@ -253,7 +252,6 @@ void animate(num t_num) {
 
 void main() {
   rule.RegisterStandardParams();
-  OptionsSetup();
 
   SelectElement patterns = querySelector("#pattern") as SelectElement;
   int count = 0;
