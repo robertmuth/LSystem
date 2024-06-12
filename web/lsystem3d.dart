@@ -33,7 +33,7 @@ const int PERIOD = INFLATE_END;
 
 List<AnimationCallback> gAnimationCallbacks = [];
 final ShaderObject dustVertexShader = ShaderObject("dustV")
-  ..AddAttributeVars([aPosition, aCurrentPosition, aNoise, aNormal])
+  ..AddAttributeVars([aPosition, aCurrentPosition, aNoise])
   ..AddVaryingVars([vColor])
   ..AddTransformVars([tPosition])
   ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
@@ -66,7 +66,7 @@ void main() {
     vec3 curr_pos = ${aCurrentPosition};
 
     vec3 orig_pos = ${aPosition};
-    vec3 orig_col = abs(${aNormal}.xyz);
+    vec3 orig_col = vec3(0,0,1);
 
    vec3 noise = GetNoise(1.1);
 
@@ -178,9 +178,11 @@ class AnimatedPointCloud {
   late MeshData _out;
 
   AnimatedPointCloud(this._cgl, this._prog, MeshData mesh, int num_points) {
-    _points = ExtractPointCloud(_prog, mesh, num_points);
+    _points = ExtractPointCloud(_prog, mesh, num_points, extract_normal: false);
     // clone _points[aPosition] to _points[aCurrentPosition]
     _points.AddAttribute(aCurrentPosition, _points.GetAttribute(aPosition), 3);
+    _points.AddAttribute(aNoise, Float32List(_points.GetNumItems()), 1);
+
     _out = _prog.MakeMeshData("out", GL_POINTS)
       ..AddVertices(_points.GetAttribute(aPosition) as Float32List);
     // make sure the vertex shader when writing to tPosition is
@@ -467,8 +469,9 @@ class CameraAnimation extends AnimationCallback {
 class MaybeSwitchLSystem extends AnimationCallback {
   Scene _scene;
   Scene _scenePoints;
+  Material _mat;
 
-  MaybeSwitchLSystem(this._scene, this._scenePoints) : super("MaybeSwitchLSystem") {}
+  MaybeSwitchLSystem(this._scene, this._scenePoints, this._mat) : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
     int active = gPattern.selectedIndex!;
@@ -491,15 +494,23 @@ class MaybeSwitchLSystem extends AnimationCallback {
       GeometryBuilder gb = gActiveLSystem!.render(nowMs);
       stop = DateTime.now();
       print("lsystem rendering took ${stop.difference(start)}");
-      Material mat = Material("dummy");
+      //
       _scene.removeAll();
       var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
       ground.EnableAttribute(aColor);
       ground.AddAttributesVector3TakeOwnership(
           aColor, List.filled(ground.vertices.length, ColorRed));
-      _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), mat)
+      _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
         ..setPos(0.0, -10.0, 0.0));
-      _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), mat));
+      _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
+      //
+      /*
+      MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
+      AnimatedPointCloud apc =
+          AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 1000);
+      _scenePoints.removeAll();
+      _scenePoints.add(Node("tree", mesh, _mat));
+      */
     }
     return [this];
   }
@@ -566,7 +577,7 @@ void main() {
   RenderProgram prog =
       RenderProgram("coloredVertices", cgl, multiColorVertexShader, multiColorFragmentShader);
 
-  Material mat = Material("timer");
+  Material mat = Material("timer")..SetUniform(uPointSize, 10.0);
   Perspective perspective = Perspective(orbit, 0.1, 5000.0);
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
   phasePerspective.clearColorBuffer = false;
@@ -597,7 +608,7 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(scenePerspective, scenePoints),
+    MaybeSwitchLSystem(scenePerspective, scenePoints, mat),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
