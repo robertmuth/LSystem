@@ -208,7 +208,6 @@ class AnimatedPointCloud {
 class ModelExtractor extends rule.Plotter {
   //VM.Vector3 _last = VM.Vector3.zero();
 
-  final Material _mat = Material("mat");
   GeometryBuilder _gb = GeometryBuilder();
   List<VM.Vector3> _polygon = [];
   List<VM.Vector3> _polygon_color = [];
@@ -297,39 +296,12 @@ class ModelExtractor extends rule.Plotter {
     _polygon_color.add(GetCurrentColor(s));
   }
 
-  void UpdateScene(Scene scene) {
-    var start = DateTime.now();
-    scene.removeAll();
-    var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
-    ground.EnableAttribute(aColor);
-    ground.AddAttributesVector3TakeOwnership(aColor, List.filled(ground.vertices.length, ColorRed));
-    scene.add(Node("cube", GeometryBuilderToMeshData("ground", scene.program, ground), _mat)
-      ..setPos(0.0, -10.0, 0.0));
-    scene.add(Node("tree", GeometryBuilderToMeshData("tree", scene.program, _gb), _mat));
-    var stop = DateTime.now();
-    print("3d mesh creation took ${stop.difference(start)}");
-  }
-
-  AnimatedPointCloud UpdateScenePointCloud(
-      Scene scene, RenderProgram prog, RenderProgram progPoints, Material mat) {
-    var cgl = scene.program.getContext();
-    var start = DateTime.now();
-
-    MeshData mesh = GeometryBuilderToMeshData("tree", prog, _gb);
-    AnimatedPointCloud a = AnimatedPointCloud(cgl, progPoints, mesh, 1000);
-
-    var stop = DateTime.now();
-
-    print("3d mesh creation took ${stop.difference(start)}");
-    scene.removeAll();
-    scene.add(Node("tree", a.points(), mat));
-
-    return a;
+  GeometryBuilder GetGeometryBuilder() {
+    return _gb;
   }
 }
 
 /**
-
  * This class maintains a list of planetary bodies, knows how to draw its
  * background and the planets, and requests that it be redraw at appropriate
  * intervals using the [Window.requestAnimationFrame] method.
@@ -384,9 +356,9 @@ class LSystem {
     return "${lsys_examples.Info(_desc)} ${_info}";
   }
 
-  void draw(double t, Scene scene) {
+  GeometryBuilder render(double t) {
     List<rule.TokenIndex> time_based = [];
-/*
+    /*
     if (gOptions.GetBool("rotate")) {
       time_based.add(rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.pDir, t / 100 * 360));
     }
@@ -398,12 +370,8 @@ class LSystem {
       time_based.add(rule.Sym.Param(rule.Kind.YAW_ADD_CONST, rule.pDir, t * 0.001));
     }
     */
-    var start = DateTime.now();
     rule.RenderAll(_pattern_prefix + time_based, _pattern, _plotter);
-    var stop = DateTime.now();
-    print("lsystem rendering took: ${stop.difference(start)}");
-
-    _plotter.UpdateScene(scene);
+    return _plotter.GetGeometryBuilder();
   }
 }
 
@@ -498,7 +466,9 @@ class CameraAnimation extends AnimationCallback {
 
 class MaybeSwitchLSystem extends AnimationCallback {
   Scene _scene;
-  MaybeSwitchLSystem(this._scene) : super("MaybeSwitchLSystem") {}
+  Scene _scenePoints;
+
+  MaybeSwitchLSystem(this._scene, this._scenePoints) : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
     int active = gPattern.selectedIndex!;
@@ -517,7 +487,19 @@ class MaybeSwitchLSystem extends AnimationCallback {
       gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
       var stop = DateTime.now();
       print("lsystem expansion took ${stop.difference(start)}");
-      gActiveLSystem!.draw(t, _scene);
+      start = DateTime.now();
+      GeometryBuilder gb = gActiveLSystem!.render(nowMs);
+      stop = DateTime.now();
+      print("lsystem rendering took ${stop.difference(start)}");
+      Material mat = Material("dummy");
+      _scene.removeAll();
+      var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
+      ground.EnableAttribute(aColor);
+      ground.AddAttributesVector3TakeOwnership(
+          aColor, List.filled(ground.vertices.length, ColorRed));
+      _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), mat)
+        ..setPos(0.0, -10.0, 0.0));
+      _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), mat));
     }
     return [this];
   }
@@ -592,6 +574,9 @@ void main() {
   Scene scenePerspective = Scene("objects", prog, [perspective]);
   phasePerspective.add(scenePerspective);
 
+  Scene scenePoints = Scene("objects", progFireworks, [perspective]);
+  phasePerspective.add(scenePoints);
+
   // This sets the viewports among other things
   void resolutionChange(HTML.Event? ev) {
     print(
@@ -612,7 +597,7 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(scenePerspective),
+    MaybeSwitchLSystem(scenePerspective, scenePoints),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
