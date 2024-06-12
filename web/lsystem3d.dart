@@ -170,6 +170,41 @@ double HexDigitToColorComponent(String s) {
   return int.parse(s, radix: 16) * 1.0 / 15.0;
 }
 
+//
+class AnimatedPointCloud {
+  ChronosGL _cgl;
+  RenderProgram _prog;
+  late MeshData _points;
+  late MeshData _out;
+
+  AnimatedPointCloud(this._cgl, this._prog, MeshData mesh, int num_points) {
+    _points = ExtractPointCloud(_prog, mesh, num_points);
+    // clone _points[aPosition] to _points[aCurrentPosition]
+    _points.AddAttribute(aCurrentPosition, _points.GetAttribute(aPosition), 3);
+    _out = _prog.MakeMeshData("out", GL_POINTS)
+      ..AddVertices(_points.GetAttribute(aPosition) as Float32List);
+    // make sure the vertex shader when writing to tPosition is
+    // writing to _out[aPosition]
+    final int bindingIndex = _prog.GetTransformBindingIndex(tPosition);
+    _cgl.bindBuffer(GL_ARRAY_BUFFER, null);
+    _cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, null);
+    _cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, _out.GetBuffer(aPosition));
+  }
+
+  MeshData points() {
+    return _points;
+  }
+
+  // copies from out[aPosition] -> points[aCurrentPosition]
+  void CopyData() {
+    // use vertex shader output as aCurrentPositions for next round
+    _cgl.bindBuffer(GL_ARRAY_BUFFER, _points.GetBuffer(aCurrentPosition));
+    _cgl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, _out.GetBuffer(aPosition));
+    _cgl.copyBufferSubData(
+        GL_TRANSFORM_FEEDBACK_BUFFER, GL_ARRAY_BUFFER, 0, 0, _points.GetNumItems() * 3 * 4);
+  }
+}
+
 class ModelExtractor extends rule.Plotter {
   //VM.Vector3 _last = VM.Vector3.zero();
 
@@ -275,24 +310,21 @@ class ModelExtractor extends rule.Plotter {
     print("3d mesh creation took ${stop.difference(start)}");
   }
 
-  void UpdateScenePointCloud(Scene scene, RenderProgram prog) {
+  AnimatedPointCloud UpdateScenePointCloud(
+      Scene scene, RenderProgram prog, RenderProgram progPoints, Material mat) {
     var cgl = scene.program.getContext();
     var start = DateTime.now();
-    scene.removeAll();
 
     MeshData mesh = GeometryBuilderToMeshData("tree", prog, _gb);
-    final MeshData points = ExtractPointCloud(prog, mesh, 1000);
-    points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
+    AnimatedPointCloud a = AnimatedPointCloud(cgl, progPoints, mesh, 1000);
 
-    MeshData out = prog.MakeMeshData("out", GL_POINTS)
-      ..AddVertices(points.GetAttribute(aPosition) as Float32List);
-    final int bindingIndex = prog.GetTransformBindingIndex(tPosition);
-    cgl.bindBuffer(GL_ARRAY_BUFFER, null);
-    cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, null);
-    cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, out.GetBuffer(aPosition));
     var stop = DateTime.now();
 
     print("3d mesh creation took ${stop.difference(start)}");
+    scene.removeAll();
+    scene.add(Node("tree", a.points(), mat));
+
+    return a;
   }
 }
 
@@ -448,6 +480,19 @@ class DrawRenderPhase extends AnimationCallback {
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
     _phase.Draw();
+    return [this];
+  }
+}
+
+class DrawRenderPhaseWithFeedback extends AnimationCallback {
+  RenderPhase _phase;
+  ChronosGL _cgl;
+  Material _mat;
+  DrawRenderPhaseWithFeedback(this._cgl, this._phase, this._mat) : super("phase:" + _phase.name);
+
+  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
+    _phase.Draw();
+    _mat.ForceUniform(uTime, nowMs / 1000.0);
     return [this];
   }
 }
