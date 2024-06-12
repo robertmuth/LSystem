@@ -11,11 +11,18 @@ import 'package:vector_math/vector_math.dart' as VM;
 
 import 'package:chronosgl/chronosgl.dart';
 
-final HTML.Element gFps = HTML.querySelector("#fps") as HTML.Element;
 final HTML.CanvasElement gCanvas = HTML.querySelector("#area") as HTML.CanvasElement;
 final HTML.SelectElement gPattern = HTML.querySelector("#pattern") as HTML.SelectElement;
 
 final gExamples = lsys_examples.kExamples3d;
+
+abstract class AnimationCallback {
+  String name;
+  AnimationCallback(this.name);
+  List<AnimationCallback> Update(double nowMs, double elapsedMs);
+}
+
+List<AnimationCallback> gAnimationCallbacks = [];
 
 num GetRandom(Math.Random rng, num a, num b) {
   return rng.nextDouble() * (b - a) + a;
@@ -264,24 +271,64 @@ void HandleCommand(String cmd, String param) {
   }
 }
 
-void animateLSystem(double t, Scene scene, RenderProgram prog) {
-  int active = gPattern.selectedIndex!;
+class UpdateUI extends AnimationCallback {
+  final HTML.Element _fps = HTML.querySelector("#fps") as HTML.Element;
 
-  if (gActiveLSystem == null || active != gNumExample) {
-    // print("current pattern index ${active} vs $gNumExample}");
-    gNumExample = active;
+  UpdateUI() : super("UpdateUI");
 
-    int seed = 666;
-    if (seed == 0) {
-      seed = new DateTime.now().millisecondsSinceEpoch;
+  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
+    String extra = gActiveLSystem!.Info();
+    webutil.UpdateFrameCount(nowMs, _fps, extra);
+    return [this];
+  }
+}
+
+class DrawRenderPhase extends AnimationCallback {
+  RenderPhase _phase;
+
+  DrawRenderPhase(this._phase) : super("phase:" + _phase.name);
+
+  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
+    _phase.Draw();
+    return [this];
+  }
+}
+
+class CameraAnimation extends AnimationCallback {
+  OrbitCamera _camera;
+  CameraAnimation(this._camera) : super("CameraAnimation");
+
+  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
+    _camera.animate(elapsedMs);
+    return [this];
+  }
+}
+
+class MaybeSwitchLSystem extends AnimationCallback {
+  Scene _scene;
+  RenderProgram _prog;
+  MaybeSwitchLSystem(this._scene, this._prog) : super("MaybeSwitchLSystem") {}
+
+  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
+    int active = gPattern.selectedIndex!;
+
+    if (gActiveLSystem == null || active != gNumExample) {
+      // print("current pattern index ${active} vs $gNumExample}");
+      gNumExample = active;
+
+      int seed = 666;
+      if (seed == 0) {
+        seed = new DateTime.now().millisecondsSinceEpoch;
+      }
+      var start = DateTime.now();
+
+      gActiveLSystem = LSystem(Math.Random(seed));
+      gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
+      var stop = DateTime.now();
+      print("lsystem expansion took ${stop.difference(start)}");
+      gActiveLSystem!.draw(t, _scene, _prog);
     }
-    var start = DateTime.now();
-
-    gActiveLSystem = LSystem(Math.Random(seed));
-    gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
-    var stop = DateTime.now();
-    print("lsystem expansion took ${stop.difference(start)}");
-    gActiveLSystem!.draw(t, scene, prog);
+    return [this];
   }
 }
 
@@ -365,21 +412,25 @@ void main() {
   HTML.window.onResize.listen(resolutionChange);
 
   double _lastTimeMs = 0.0;
+
+  gAnimationCallbacks = [
+    MaybeSwitchLSystem(scenePerspective, prog),
+    UpdateUI(),
+    DrawRenderPhase(phasePerspective),
+    CameraAnimation(orbit),
+  ];
+
   void animate(num timeMs) {
     double elapsed = timeMs - _lastTimeMs;
     _lastTimeMs = timeMs + 0.0;
-    //orbit.azimuth += 0.001;
-    animateLSystem(elapsed, scenePerspective, prog);
-    orbit.animate(elapsed);
-    phasePerspective.Draw();
-    String extra = gActiveLSystem!.Info();
-    webutil.UpdateFrameCount(_lastTimeMs, gFps, extra);
-
+    //
+    List<AnimationCallback> new_callbacks = [];
+    for (var cb in gAnimationCallbacks) {
+      new_callbacks.addAll(cb.Update(_lastTimeMs, elapsed));
+    }
+    gAnimationCallbacks = new_callbacks;
     HTML.window.animationFrame.then(animate);
-
-    // fps.UpdateFrameCount(_lastTimeMs);
   }
 
   animate(0.0);
-  //HTML.window.requestAnimationFrame(animate);
 }
