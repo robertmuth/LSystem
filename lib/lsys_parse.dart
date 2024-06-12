@@ -90,6 +90,7 @@ rule.TokenIndex TranslateToSym(String s) {
     case "-":
       return rule.Token.Param(rule.Kind.YAW_SUB, rule.xDir, rule.xAngleStep);
     //
+    case "∧":
     case "^":
       return rule.Token.Param(rule.Kind.PITCH_ADD, rule.xDir, rule.xAngleStep);
     case "&":
