@@ -297,15 +297,15 @@ class ModelExtractor extends rule.Plotter {
     _polygon_color.add(GetCurrentColor(s));
   }
 
-  void UpdateScene(Scene scene, RenderProgram prog) {
+  void UpdateScene(Scene scene) {
     var start = DateTime.now();
     scene.removeAll();
     var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
     ground.EnableAttribute(aColor);
     ground.AddAttributesVector3TakeOwnership(aColor, List.filled(ground.vertices.length, ColorRed));
-    scene.add(Node("cube", GeometryBuilderToMeshData("ground", prog, ground), _mat)
+    scene.add(Node("cube", GeometryBuilderToMeshData("ground", scene.program, ground), _mat)
       ..setPos(0.0, -10.0, 0.0));
-    scene.add(Node("tree", GeometryBuilderToMeshData("tree", prog, _gb), _mat));
+    scene.add(Node("tree", GeometryBuilderToMeshData("tree", scene.program, _gb), _mat));
     var stop = DateTime.now();
     print("3d mesh creation took ${stop.difference(start)}");
   }
@@ -384,7 +384,7 @@ class LSystem {
     return "${lsys_examples.Info(_desc)} ${_info}";
   }
 
-  void draw(double t, Scene scene, RenderProgram prog) {
+  void draw(double t, Scene scene) {
     List<rule.TokenIndex> time_based = [];
 /*
     if (gOptions.GetBool("rotate")) {
@@ -403,7 +403,7 @@ class LSystem {
     var stop = DateTime.now();
     print("lsystem rendering took: ${stop.difference(start)}");
 
-    _plotter.UpdateScene(scene, prog);
+    _plotter.UpdateScene(scene);
   }
 }
 
@@ -475,24 +475,13 @@ class UpdateUI extends AnimationCallback {
 
 class DrawRenderPhase extends AnimationCallback {
   RenderPhase _phase;
-
-  DrawRenderPhase(this._phase) : super("phase:" + _phase.name);
-
-  List<AnimationCallback> Update(double nowMs, double elapsedMs) {
-    _phase.Draw();
-    return [this];
-  }
-}
-
-class DrawRenderPhaseWithFeedback extends AnimationCallback {
-  RenderPhase _phase;
-  ChronosGL _cgl;
   Material _mat;
-  DrawRenderPhaseWithFeedback(this._cgl, this._phase, this._mat) : super("phase:" + _phase.name);
+
+  DrawRenderPhase(this._phase, this._mat) : super("phase:" + _phase.name);
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
-    _phase.Draw();
     _mat.ForceUniform(uTime, nowMs / 1000.0);
+    _phase.Draw();
     return [this];
   }
 }
@@ -509,8 +498,7 @@ class CameraAnimation extends AnimationCallback {
 
 class MaybeSwitchLSystem extends AnimationCallback {
   Scene _scene;
-  RenderProgram _prog;
-  MaybeSwitchLSystem(this._scene, this._prog) : super("MaybeSwitchLSystem") {}
+  MaybeSwitchLSystem(this._scene) : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
     int active = gPattern.selectedIndex!;
@@ -529,7 +517,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
       gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
       var stop = DateTime.now();
       print("lsystem expansion took ${stop.difference(start)}");
-      gActiveLSystem!.draw(t, _scene, _prog);
+      gActiveLSystem!.draw(t, _scene);
     }
     return [this];
   }
@@ -591,18 +579,18 @@ void main() {
 
   OrbitCamera orbit = OrbitCamera(700.0, 10.0, 0.0, gCanvas);
   final RenderProgram progFireworks =
-      RenderProgram("fireworks", cgl, dustVertexShader, dustFragmentShader);
+      RenderProgram("animatedColoredPoints", cgl, dustVertexShader, dustFragmentShader);
 
   RenderProgram prog =
-      RenderProgram("textured", cgl, multiColorVertexShader, multiColorFragmentShader);
+      RenderProgram("coloredVertices", cgl, multiColorVertexShader, multiColorFragmentShader);
 
+  Material mat = Material("timer");
   Perspective perspective = Perspective(orbit, 0.1, 5000.0);
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
   phasePerspective.clearColorBuffer = false;
+
   Scene scenePerspective = Scene("objects", prog, [perspective]);
   phasePerspective.add(scenePerspective);
-
-  Scene sceneFireworks = Scene("fireworks", progFireworks, [perspective]);
 
   // This sets the viewports among other things
   void resolutionChange(HTML.Event? ev) {
@@ -624,9 +612,9 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(scenePerspective, prog),
+    MaybeSwitchLSystem(scenePerspective),
     UpdateUI(),
-    DrawRenderPhase(phasePerspective),
+    DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
   ];
 
