@@ -495,22 +495,24 @@ class MaybeSwitchLSystem extends AnimationCallback {
       stop = DateTime.now();
       print("lsystem rendering took ${stop.difference(start)}");
       //
-      _scene.removeAll();
-      var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
-      ground.EnableAttribute(aColor);
-      ground.AddAttributesVector3TakeOwnership(
-          aColor, List.filled(ground.vertices.length, ColorRed));
-      _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
-        ..setPos(0.0, -10.0, 0.0));
-      _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
+      if (false) {
+        _scene.removeAll();
+        var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
+        ground.EnableAttribute(aColor);
+        ground.AddAttributesVector3TakeOwnership(
+            aColor, List.filled(ground.vertices.length, ColorRed));
+        _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
+          ..setPos(0.0, -10.0, 0.0));
+        _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
+      }
       //
-      /*
-      MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
-      AnimatedPointCloud apc =
-          AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 1000);
-      _scenePoints.removeAll();
-      _scenePoints.add(Node("tree", mesh, _mat));
-      */
+      if (true) {
+        MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
+        AnimatedPointCloud apc =
+            AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
+        _scenePoints.removeAll();
+        _scenePoints.add(Node("tree", apc.points(), _mat));
+      }
     }
     return [this];
   }
