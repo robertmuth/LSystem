@@ -18,6 +18,8 @@ final HTML.SelectElement gPattern = HTML.querySelector("#pattern") as HTML.Selec
 final HTML.SelectElement gMode = HTML.querySelector("#mode") as HTML.SelectElement;
 
 final gExamples = lsys_examples.kExamples3d;
+final int gRngSeed = 666666666;
+//  seed = new DateTime.now().millisecondsSinceEpoch;
 
 List<AnimationCallback> gAnimationCallbacks = [];
 
@@ -294,7 +296,7 @@ class CameraAnimation extends AnimationCallback {
   }
 }
 
-void AddInstanceData(MeshData md) {
+void AddInstanceData(MeshData md, Math.Random rng) {
   final int N = 3;
   int count = N * N * N * 8;
   Float32List translations = Float32List(count * 3);
@@ -307,7 +309,8 @@ void AddInstanceData(MeshData md) {
       for (int z = -N; z < N; z++) {
         spatial.setPos(x * 400.0, y * 400.0, z * 400.0);
         translations.setAll(pos * 3, spatial.getPos().storage);
-        VM.Quaternion q = VM.Quaternion.fromRotation(spatial.transform.getRotation());
+        // VM.Quaternion q = VM.Quaternion.fromRotation(spatial.transform.getRotation());
+        VM.Quaternion q = VM.Quaternion.random(rng);
         rotations.setAll(pos * 3, q.storage);
         pos++;
       }
@@ -325,9 +328,10 @@ class MaybeSwitchLSystem extends AnimationCallback {
   Scene _scenePointsInstanced;
   Scene _sceneAnimatedPoints;
   Material _mat;
+  Math.Random _rng;
 
   MaybeSwitchLSystem(this._sceneNormal, this._sceneNormalInstanced, this._scenePoints,
-      this._scenePointsInstanced, this._sceneAnimatedPoints, this._mat)
+      this._scenePointsInstanced, this._sceneAnimatedPoints, this._mat, this._rng)
       : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
@@ -337,13 +341,9 @@ class MaybeSwitchLSystem extends AnimationCallback {
       // print("current pattern index ${active} vs $gNumExample}");
       gNumExample = active;
 
-      int seed = 666;
-      if (seed == 0) {
-        seed = new DateTime.now().millisecondsSinceEpoch;
-      }
       var start = DateTime.now();
 
-      gActiveLSystem = LSystem(Math.Random(seed));
+      gActiveLSystem = LSystem(Math.Random(gRngSeed));
       gActiveLSystem!.Init(gExamples[gNumExample % gExamples.length]);
       var stop = DateTime.now();
       print("lsystem expansion took ${stop.difference(start)}");
@@ -375,15 +375,21 @@ class MaybeSwitchLSystem extends AnimationCallback {
               .add(Node("tree", GeometryBuilderToMeshData("tree", _sceneNormal.program, gb), _mat));
         case "NormalInstanced":
           MeshData md = GeometryBuilderToMeshData("tree", _sceneNormalInstanced.program, gb);
-          AddInstanceData(md);
+          AddInstanceData(md, _rng);
           _sceneNormalInstanced.add(Node("tree", md, _mat));
         case "Points":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
-          MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
+          final double area = GetMeshFaceArea(mesh);
+          print("area is ${area}");
+          MeshData points = ExtractPointCloud(_scenePoints.program, mesh, (area * 10.0).toInt(),
               extract_color: true, extract_normal: false);
           _scenePoints.add(Node("tree", points, _mat));
         case "PointsInstanced":
-          break;
+          MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
+          MeshData points = ExtractPointCloud(_scenePointsInstanced.program, mesh, 200000,
+              extract_color: true, extract_normal: false);
+          AddInstanceData(points, _rng);
+          _scenePointsInstanced.add(Node("tree", points, _mat));
         case "AnimatedPoints":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_sceneAnimatedPoints.program, mesh, 200000,
@@ -511,7 +517,7 @@ void main() {
 
   gAnimationCallbacks = [
     MaybeSwitchLSystem(sceneNormal, sceneNormalInstanced, scenePoints, scenePointsInstanced,
-        sceneAnimatedPoints, mat),
+        sceneAnimatedPoints, mat, Math.Random(gRngSeed)),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
