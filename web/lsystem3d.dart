@@ -297,7 +297,7 @@ class CameraAnimation extends AnimationCallback {
 }
 
 void AddInstanceData(MeshData md, Math.Random rng) {
-  final int N = 3;
+  final int N = 5;
   int count = N * N * N * 8;
   Float32List translations = Float32List(count * 3);
   Float32List rotations = Float32List(count * 4);
@@ -330,10 +330,9 @@ class MaybeSwitchLSystem extends AnimationCallback {
   Scene _scenePointsInstanced;
   Scene _sceneAnimatedPoints;
   Material _mat;
-  Math.Random _rng;
 
   MaybeSwitchLSystem(this._sceneNormal, this._sceneNormalInstanced, this._scenePoints,
-      this._scenePointsInstanced, this._sceneAnimatedPoints, this._mat, this._rng)
+      this._scenePointsInstanced, this._sceneAnimatedPoints, this._mat)
       : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
@@ -377,7 +376,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
               .add(Node("tree", GeometryBuilderToMeshData("tree", _sceneNormal.program, gb), _mat));
         case "NormalInstanced":
           MeshData md = GeometryBuilderToMeshData("tree", _sceneNormalInstanced.program, gb);
-          AddInstanceData(md, _rng);
+          AddInstanceData(md, Math.Random(gRngSeed));
           _sceneNormalInstanced.add(Node("tree", md, _mat));
         case "Points":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
@@ -390,7 +389,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_scenePointsInstanced.program, mesh, 200000,
               extract_color: true, extract_normal: false);
-          AddInstanceData(points, _rng);
+          AddInstanceData(points, Math.Random(gRngSeed));
           _scenePointsInstanced.add(Node("tree", points, _mat));
         case "AnimatedPoints":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
@@ -519,7 +518,7 @@ void main() {
 
   gAnimationCallbacks = [
     MaybeSwitchLSystem(sceneNormal, sceneNormalInstanced, scenePoints, scenePointsInstanced,
-        sceneAnimatedPoints, mat, Math.Random(gRngSeed)),
+        sceneAnimatedPoints, mat),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
