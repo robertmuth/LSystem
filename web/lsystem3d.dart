@@ -294,13 +294,40 @@ class CameraAnimation extends AnimationCallback {
   }
 }
 
+void AddInstanceData(MeshData md) {
+  final int N = 3;
+  int count = N * N * N * 8;
+  Float32List translations = Float32List(count * 3);
+  Float32List rotations = Float32List(count * 4);
+
+  Spatial spatial = Spatial("dummy");
+  int pos = 0;
+  for (int x = -N; x < N; x++) {
+    for (int y = -N; y < N; y++) {
+      for (int z = -N; z < N; z++) {
+        spatial.setPos(x * 400.0, y * 400.0, z * 400.0);
+        translations.setAll(pos * 3, spatial.getPos().storage);
+        VM.Quaternion q = VM.Quaternion.fromRotation(spatial.transform.getRotation());
+        rotations.setAll(pos * 3, q.storage);
+        pos++;
+      }
+    }
+  }
+
+  md.AddAttribute(iaRotation, rotations, 4);
+  md.AddAttribute(iaTranslation, translations, 3);
+}
+
 class MaybeSwitchLSystem extends AnimationCallback {
   Scene _sceneNormal;
+  Scene _sceneNormalInstanced;
   Scene _scenePoints;
+  Scene _scenePointsInstanced;
   Scene _sceneAnimatedPoints;
   Material _mat;
 
-  MaybeSwitchLSystem(this._sceneNormal, this._scenePoints, this._sceneAnimatedPoints, this._mat)
+  MaybeSwitchLSystem(this._sceneNormal, this._sceneNormalInstanced, this._scenePoints,
+      this._scenePointsInstanced, this._sceneAnimatedPoints, this._mat)
       : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
@@ -328,8 +355,12 @@ class MaybeSwitchLSystem extends AnimationCallback {
       print(">>>>>>>>>>>> ${gMode.value}");
       //
       _sceneNormal.removeAll();
-      _sceneAnimatedPoints.removeAll();
+      _sceneNormalInstanced.removeAll();
+
       _scenePoints.removeAll();
+      _scenePointsInstanced.removeAll();
+
+      _sceneAnimatedPoints.removeAll();
 
       switch (gMode.value as String) {
         case "Normal":
@@ -342,12 +373,17 @@ class MaybeSwitchLSystem extends AnimationCallback {
                 ..setPos(0.0, -10.0, 0.0));
           _sceneNormal
               .add(Node("tree", GeometryBuilderToMeshData("tree", _sceneNormal.program, gb), _mat));
+        case "NormalInstanced":
+          MeshData md = GeometryBuilderToMeshData("tree", _sceneNormalInstanced.program, gb);
+          AddInstanceData(md);
+          _sceneNormalInstanced.add(Node("tree", md, _mat));
         case "Points":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
               extract_color: true, extract_normal: false);
           _scenePoints.add(Node("tree", points, _mat));
-
+        case "PointsInstanced":
+          break;
         case "AnimatedPoints":
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_sceneAnimatedPoints.program, mesh, 200000,
@@ -474,7 +510,8 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(sceneNormal, scenePoints, sceneAnimatedPoints, mat),
+    MaybeSwitchLSystem(sceneNormal, sceneNormalInstanced, scenePoints, scenePointsInstanced,
+        sceneAnimatedPoints, mat),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
