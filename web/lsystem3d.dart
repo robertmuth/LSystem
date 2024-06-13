@@ -307,15 +307,17 @@ void AddInstanceData(MeshData md, Math.Random rng) {
   for (int x = -N; x < N; x++) {
     for (int y = -N; y < N; y++) {
       for (int z = -N; z < N; z++) {
-        spatial.setPos(x * 400.0, y * 400.0, z * 400.0);
+        spatial.setPos(x * 400.0 + rng.nextDouble() * 200.0, y * 400.0 + rng.nextDouble() * 200.0,
+            z * 400.0 + rng.nextDouble() * 200.0);
         translations.setAll(pos * 3, spatial.getPos().storage);
         // VM.Quaternion q = VM.Quaternion.fromRotation(spatial.transform.getRotation());
         VM.Quaternion q = VM.Quaternion.random(rng);
-        rotations.setAll(pos * 3, q.storage);
+        rotations.setAll(pos * 4, q.storage);
         pos++;
       }
     }
   }
+  assert(pos == count);
 
   md.AddAttribute(iaRotation, rotations, 4);
   md.AddAttribute(iaTranslation, translations, 3);
