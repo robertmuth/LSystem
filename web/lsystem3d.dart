@@ -35,7 +35,6 @@ List<AnimationCallback> gAnimationCallbacks = [];
 final ShaderObject dustVertexShader = ShaderObject("dustV")
   ..AddAttributeVars([aPosition, aCurrentPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
-  ..AddTransformVars([tPosition])
   ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
   ..SetBody([
     """
@@ -144,7 +143,6 @@ void main() {
 */
 
     // will become aCurrentPosition int the next run
-    ${tPosition} = new_pos;
     ${vColor}.rgb  = new_col;
     gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(new_pos, 1.0);
     gl_PointSize = ${uPointSize} / gl_Position.z;
@@ -496,7 +494,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
       stop = DateTime.now();
       print("lsystem rendering took ${stop.difference(start)}");
       //
-      if (false) {
+      if (true) {
         _scene.removeAll();
         var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
         ground.EnableAttribute(aColor);
@@ -507,12 +505,18 @@ class MaybeSwitchLSystem extends AnimationCallback {
         _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
       }
       //
-      if (true) {
+      if (false) {
         MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
-        AnimatedPointCloud apc =
-            AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
+        MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
+            extract_color: true, extract_normal: false);
+        // clone _points[aPosition] to _points[aCurrentPosition]
+        points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
+        points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
+
+        //AnimatedPointCloud apc =
+        //    AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
         _scenePoints.removeAll();
-        _scenePoints.add(Node("tree", apc.points(), _mat));
+        _scenePoints.add(Node("tree", points, _mat));
       }
     }
     return [this];
