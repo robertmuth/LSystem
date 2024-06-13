@@ -14,6 +14,7 @@ import 'package:chronosgl/chronosgl.dart';
 
 final HTML.CanvasElement gCanvas = HTML.querySelector("#area") as HTML.CanvasElement;
 final HTML.SelectElement gPattern = HTML.querySelector("#pattern") as HTML.SelectElement;
+final HTML.SelectElement gMode = HTML.querySelector("#mode") as HTML.SelectElement;
 
 final gExamples = lsys_examples.kExamples3d;
 
@@ -25,6 +26,7 @@ abstract class AnimationCallback {
 
 const String aCurrentPosition = "aCurrentPosition";
 const String aNoise = "aNoise";
+
 const int DEFLATE_START = 1;
 const int DEFLATE_END = 2;
 const int INFLATE_START = 3;
@@ -32,6 +34,7 @@ const int INFLATE_END = 4;
 const int PERIOD = INFLATE_END;
 
 List<AnimationCallback> gAnimationCallbacks = [];
+
 final ShaderObject dustVertexShader = ShaderObject("dustV")
   ..AddAttributeVars([aPosition, aCurrentPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
@@ -159,6 +162,23 @@ void main() {
 }
     """
   ]);
+
+final ShaderObject coloredPointsVertexShader = ShaderObject("coloredPointsVertexShader")
+  ..AddAttributeVars([aPosition, aColor])
+  ..AddVaryingVars([vColor])
+  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uPointSize])
+  ..SetBody([
+    """void main() {
+  ${vColor} = ${aColor};
+  gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(${aPosition}, 1.0);
+  gl_PointSize = ${uPointSize}/gl_Position.z;
+}
+  """
+  ]);
+
+final ShaderObject coloredPointsFragmentShader = ShaderObject("coloredPointsFragmentShader")
+  ..AddVaryingVars([vColor])
+  ..SetBodyWithMain(["${oFragColor}.rgb = ${vColor};"]);
 
 num GetRandom(Math.Random rng, num a, num b) {
   return rng.nextDouble() * (b - a) + a;
@@ -494,29 +514,42 @@ class MaybeSwitchLSystem extends AnimationCallback {
       stop = DateTime.now();
       print("lsystem rendering took ${stop.difference(start)}");
       //
-      if (true) {
-        _scene.removeAll();
-        var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
-        ground.EnableAttribute(aColor);
-        ground.AddAttributesVector3TakeOwnership(
-            aColor, List.filled(ground.vertices.length, ColorRed));
-        _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
-          ..setPos(0.0, -10.0, 0.0));
-        _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
-      }
+      print(">>>>>>>>>>>> ${gMode.value}");
       //
-      if (false) {
-        MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
-        MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
-            extract_color: true, extract_normal: false);
-        // clone _points[aPosition] to _points[aCurrentPosition]
-        points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
-        points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
+      _scene.removeAll();
+      _scenePoints.removeAll();
 
-        //AnimatedPointCloud apc =
-        //    AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
-        _scenePoints.removeAll();
-        _scenePoints.add(Node("tree", points, _mat));
+      switch (gMode.value as String) {
+        case "Normal":
+          var ground = CubeGeometry(x: 40.0, y: 0.5, z: 40.0);
+          ground.EnableAttribute(aColor);
+          ground.AddAttributesVector3TakeOwnership(
+              aColor, List.filled(ground.vertices.length, ColorRed));
+          _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
+            ..setPos(0.0, -10.0, 0.0));
+          _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
+        case "Points":
+          MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
+          MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
+              extract_color: true, extract_normal: false);
+          // clone _points[aPosition] to _points[aCurrentPosition]
+          points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
+          points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
+          _scene.add(Node("tree", points, _mat));
+
+        case "AnimatedPoints":
+          MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
+          MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
+              extract_color: true, extract_normal: false);
+          // clone _points[aPosition] to _points[aCurrentPosition]
+          points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
+          points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
+
+          //AnimatedPointCloud apc =
+          //    AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
+          _scenePoints.add(Node("tree", points, _mat));
+        default:
+          print("Unknown mode [${gMode.value}]");
       }
     }
     return [this];
@@ -578,10 +611,13 @@ void main() {
   ChronosGL cgl = ChronosGL(gCanvas);
 
   OrbitCamera orbit = OrbitCamera(700.0, 10.0, 0.0, gCanvas);
-  final RenderProgram progFireworks =
+  final RenderProgram progPoints =
+      RenderProgram("coloredPoints", cgl, coloredPointsVertexShader, coloredPointsFragmentShader);
+
+  final RenderProgram progAnimatedPoints =
       RenderProgram("animatedColoredPoints", cgl, dustVertexShader, dustFragmentShader);
 
-  RenderProgram prog =
+  final RenderProgram prog =
       RenderProgram("coloredVertices", cgl, multiColorVertexShader, multiColorFragmentShader);
 
   Material mat = Material("timer")..SetUniform(uPointSize, 10.0);
@@ -589,11 +625,14 @@ void main() {
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
   phasePerspective.clearColorBuffer = false;
 
-  Scene scenePerspective = Scene("objects", prog, [perspective]);
-  phasePerspective.add(scenePerspective);
+  Scene sceneNormal = Scene("normal", prog, [perspective]);
+  phasePerspective.add(sceneNormal);
 
-  Scene scenePoints = Scene("objects", progFireworks, [perspective]);
-  phasePerspective.add(scenePoints);
+  Scene sceneAnimatedPoints = Scene("animatedPoints", progAnimatedPoints, [perspective]);
+  phasePerspective.add(sceneAnimatedPoints);
+
+  Scene scenePoints = Scene("points", progPoints, [perspective]);
+  phasePerspective.add(sceneAnimatedPoints);
 
   // This sets the viewports among other things
   void resolutionChange(HTML.Event? ev) {
@@ -615,7 +654,7 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(scenePerspective, scenePoints, mat),
+    MaybeSwitchLSystem(sceneNormal, sceneAnimatedPoints, mat),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
