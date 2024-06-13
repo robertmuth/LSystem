@@ -24,7 +24,6 @@ abstract class AnimationCallback {
   List<AnimationCallback> Update(double nowMs, double elapsedMs);
 }
 
-const String aCurrentPosition = "aCurrentPosition";
 const String aNoise = "aNoise";
 
 const int DEFLATE_START = 1;
@@ -36,7 +35,7 @@ const int PERIOD = INFLATE_END;
 List<AnimationCallback> gAnimationCallbacks = [];
 
 final ShaderObject dustVertexShader = ShaderObject("dustV")
-  ..AddAttributeVars([aPosition, aCurrentPosition, aNoise, aColor])
+  ..AddAttributeVars([aPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
   ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
   ..SetBody([
@@ -65,7 +64,7 @@ vec3 GetVertexNoise(vec3 noise, float x) {
 }
 void main() {
 
-    vec3 curr_pos = ${aCurrentPosition};
+    vec3 curr_pos = ${aPosition};
 
     vec3 orig_pos = ${aPosition};
     vec3 orig_col = ${aColor};
@@ -186,44 +185,6 @@ num GetRandom(Math.Random rng, num a, num b) {
 
 double HexDigitToColorComponent(String s) {
   return int.parse(s, radix: 16) * 1.0 / 15.0;
-}
-
-//
-class AnimatedPointCloud {
-  ChronosGL _cgl;
-  RenderProgram _prog;
-  late MeshData _points;
-  late MeshData _out;
-
-  AnimatedPointCloud(this._cgl, this._prog, MeshData mesh, int num_points) {
-    _points =
-        ExtractPointCloud(_prog, mesh, num_points, extract_color: true, extract_normal: false);
-    // clone _points[aPosition] to _points[aCurrentPosition]
-    _points.AddAttribute(aCurrentPosition, _points.GetAttribute(aPosition), 3);
-    _points.AddAttribute(aNoise, Float32List(_points.GetNumItems()), 1);
-
-    _out = _prog.MakeMeshData("out", GL_POINTS)
-      ..AddVertices(_points.GetAttribute(aPosition) as Float32List);
-    // make sure the vertex shader when writing to tPosition is
-    // writing to _out[aPosition]
-    final int bindingIndex = _prog.GetTransformBindingIndex(tPosition);
-    _cgl.bindBuffer(GL_ARRAY_BUFFER, null);
-    _cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, null);
-    _cgl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, bindingIndex, _out.GetBuffer(aPosition));
-  }
-
-  MeshData points() {
-    return _points;
-  }
-
-  // copies from out[aPosition] -> points[aCurrentPosition]
-  void CopyData() {
-    // use vertex shader output as aCurrentPositions for next round
-    _cgl.bindBuffer(GL_ARRAY_BUFFER, _points.GetBuffer(aCurrentPosition));
-    _cgl.bindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, _out.GetBuffer(aPosition));
-    _cgl.copyBufferSubData(
-        GL_TRANSFORM_FEEDBACK_BUFFER, GL_ARRAY_BUFFER, 0, 0, _points.GetNumItems() * 3 * 4);
-  }
 }
 
 class ModelExtractor extends rule.Plotter {
@@ -486,11 +447,13 @@ class CameraAnimation extends AnimationCallback {
 }
 
 class MaybeSwitchLSystem extends AnimationCallback {
-  Scene _scene;
+  Scene _sceneNormal;
   Scene _scenePoints;
+  Scene _sceneAnimatedPoints;
   Material _mat;
 
-  MaybeSwitchLSystem(this._scene, this._scenePoints, this._mat) : super("MaybeSwitchLSystem") {}
+  MaybeSwitchLSystem(this._sceneNormal, this._scenePoints, this._sceneAnimatedPoints, this._mat)
+      : super("MaybeSwitchLSystem") {}
 
   List<AnimationCallback> Update(double nowMs, double elapsedMs) {
     int active = gPattern.selectedIndex!;
@@ -516,7 +479,8 @@ class MaybeSwitchLSystem extends AnimationCallback {
       //
       print(">>>>>>>>>>>> ${gMode.value}");
       //
-      _scene.removeAll();
+      _sceneNormal.removeAll();
+      _sceneAnimatedPoints.removeAll();
       _scenePoints.removeAll();
 
       switch (gMode.value as String) {
@@ -525,29 +489,26 @@ class MaybeSwitchLSystem extends AnimationCallback {
           ground.EnableAttribute(aColor);
           ground.AddAttributesVector3TakeOwnership(
               aColor, List.filled(ground.vertices.length, ColorRed));
-          _scene.add(Node("cube", GeometryBuilderToMeshData("ground", _scene.program, ground), _mat)
-            ..setPos(0.0, -10.0, 0.0));
-          _scene.add(Node("tree", GeometryBuilderToMeshData("tree", _scene.program, gb), _mat));
+          _sceneNormal.add(
+              Node("cube", GeometryBuilderToMeshData("ground", _sceneNormal.program, ground), _mat)
+                ..setPos(0.0, -10.0, 0.0));
+          _sceneNormal
+              .add(Node("tree", GeometryBuilderToMeshData("tree", _sceneNormal.program, gb), _mat));
         case "Points":
-          MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
+          MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
               extract_color: true, extract_normal: false);
-          // clone _points[aPosition] to _points[aCurrentPosition]
-          points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
-          points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
-          _scene.add(Node("tree", points, _mat));
+          _scenePoints.add(Node("tree", points, _mat));
 
         case "AnimatedPoints":
-          MeshData mesh = GeometryBuilderToMeshData("tree", _scene.program, gb);
-          MeshData points = ExtractPointCloud(_scenePoints.program, mesh, 200000,
+          MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
+          MeshData points = ExtractPointCloud(_sceneAnimatedPoints.program, mesh, 200000,
               extract_color: true, extract_normal: false);
-          // clone _points[aPosition] to _points[aCurrentPosition]
-          points.AddAttribute(aCurrentPosition, points.GetAttribute(aPosition), 3);
           points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
 
           //AnimatedPointCloud apc =
           //    AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
-          _scenePoints.add(Node("tree", points, _mat));
+          _sceneAnimatedPoints.add(Node("tree", points, _mat));
         default:
           print("Unknown mode [${gMode.value}]");
       }
@@ -558,7 +519,6 @@ class MaybeSwitchLSystem extends AnimationCallback {
 
 void main() {
   print("Startup");
-  IntroduceNewShaderVar(aCurrentPosition, const ShaderVarDesc(VarTypeVec3, ""));
   IntroduceNewShaderVar(aNoise, const ShaderVarDesc(VarTypeFloat, ""));
 
   rule.RegisterStandardParams();
@@ -632,7 +592,7 @@ void main() {
   phasePerspective.add(sceneAnimatedPoints);
 
   Scene scenePoints = Scene("points", progPoints, [perspective]);
-  phasePerspective.add(sceneAnimatedPoints);
+  phasePerspective.add(scenePoints);
 
   // This sets the viewports among other things
   void resolutionChange(HTML.Event? ev) {
@@ -654,7 +614,7 @@ void main() {
   double _lastTimeMs = 0.0;
 
   gAnimationCallbacks = [
-    MaybeSwitchLSystem(sceneNormal, sceneAnimatedPoints, mat),
+    MaybeSwitchLSystem(sceneNormal, scenePoints, sceneAnimatedPoints, mat),
     UpdateUI(),
     DrawRenderPhase(phasePerspective, mat),
     CameraAnimation(orbit),
