@@ -21,6 +21,26 @@ void main() {
     """,
   ]);
 
+final ShaderObject multiColorVertexShaderInstanced = ShaderObject("MultiColorVertexColorV")
+  ..AddAttributeVars([aPosition, aColor])
+  ..AddAttributeVars([iaRotation, iaTranslation])
+  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix])
+  ..AddVaryingVars([vColor])
+  ..SetBody([
+    """
+vec3 rotate_vertex_position(vec3 pos, vec4 rot) {
+    return pos + 2.0 * cross(rot.xyz, cross(rot.xyz, pos) + rot.w * pos);
+}
+
+void main() {
+    vec3 P = rotate_vertex_position(${aPosition}, ${iaRotation}) +
+             ${iaTranslation};
+    gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(P, 1.0);
+    ${vColor} = ${aColor};
+}
+    """,
+  ]);
+
 final ShaderObject multiColorFragmentShader = ShaderObject("MultiColorVertexColorF")
   ..AddVaryingVars([vColor])
   ..SetBody([
@@ -31,7 +51,7 @@ final ShaderObject multiColorFragmentShader = ShaderObject("MultiColorVertexColo
 """
   ]);
 
-final ShaderObject dustVertexShader = ShaderObject("dustV")
+final ShaderObject animatedPointsVertexShader = ShaderObject("dustV")
   ..AddAttributeVars([aPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
   ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
@@ -149,7 +169,7 @@ void main() {
 """
   ]);
 
-final ShaderObject dustFragmentShader = ShaderObject("dustF")
+final ShaderObject animatedPointsFragmentShader = ShaderObject("dustF")
   ..AddVaryingVars([vColor])
   ..SetBody([
     """
@@ -157,6 +177,27 @@ void main() {
     ${oFragColor}.rgb = ${vColor};
 }
     """
+  ]);
+
+final ShaderObject coloredPointsVertexShaderInstanced = ShaderObject("coloredPointsVertexShader")
+  ..AddAttributeVars([aPosition, aColor])
+  ..AddAttributeVars([iaRotation, iaTranslation])
+  ..AddVaryingVars([vColor])
+  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uPointSize])
+  ..SetBody([
+    """
+vec3 rotate_vertex_position(vec3 pos, vec4 rot) {
+    return pos + 2.0 * cross(rot.xyz, cross(rot.xyz, pos) + rot.w * pos);
+}
+
+void main() {
+  ${vColor} = ${aColor};
+ vec3 P = rotate_vertex_position(${aPosition}, ${iaRotation}) +
+             ${iaTranslation};
+  gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(P, 1.0);
+  gl_PointSize = ${uPointSize}/gl_Position.z;
+}
+  """
   ]);
 
 final ShaderObject coloredPointsVertexShader = ShaderObject("coloredPointsVertexShader")

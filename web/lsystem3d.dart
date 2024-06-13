@@ -422,18 +422,24 @@ void main() {
   final RenderProgram progPoints = RenderProgram(
       "coloredPoints", cgl, shaders.coloredPointsVertexShader, shaders.coloredPointsFragmentShader);
 
-  final RenderProgram progAnimatedPoints = RenderProgram(
-      "animatedColoredPoints", cgl, shaders.dustVertexShader, shaders.dustFragmentShader);
+  final RenderProgram progPointsInstanced = RenderProgram("coloredPoints", cgl,
+      shaders.coloredPointsVertexShaderInstanced, shaders.coloredPointsFragmentShader);
 
-  final RenderProgram prog = RenderProgram(
+  final RenderProgram progAnimatedPoints = RenderProgram("animatedColoredPoints", cgl,
+      shaders.animatedPointsVertexShader, shaders.animatedPointsFragmentShader);
+
+  final RenderProgram progNormal = RenderProgram(
       "coloredVertices", cgl, shaders.multiColorVertexShader, shaders.multiColorFragmentShader);
+
+  final RenderProgram progNormalInstanced = RenderProgram("coloredVertices", cgl,
+      shaders.multiColorVertexShaderInstanced, shaders.multiColorFragmentShader);
 
   Material mat = Material("timer")..SetUniform(uPointSize, 10.0);
   Perspective perspective = Perspective(orbit, 0.1, 5000.0);
   RenderPhase phasePerspective = RenderPhase("perspective", cgl);
   phasePerspective.clearColorBuffer = false;
 
-  Scene sceneNormal = Scene("normal", prog, [perspective]);
+  Scene sceneNormal = Scene("normal", progNormal, [perspective]);
   phasePerspective.add(sceneNormal);
 
   Scene sceneAnimatedPoints = Scene("animatedPoints", progAnimatedPoints, [perspective]);
@@ -441,6 +447,12 @@ void main() {
 
   Scene scenePoints = Scene("points", progPoints, [perspective]);
   phasePerspective.add(scenePoints);
+
+  Scene scenePointsInstanced = Scene("points", progPointsInstanced, [perspective]);
+  phasePerspective.add(scenePointsInstanced);
+
+  Scene sceneNormalInstanced = Scene("normal", progNormalInstanced, [perspective]);
+  phasePerspective.add(sceneNormalInstanced);
 
   // This sets the viewports among other things
   void resolutionChange(HTML.Event? ev) {
