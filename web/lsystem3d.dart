@@ -33,7 +33,7 @@ const int PERIOD = INFLATE_END;
 
 List<AnimationCallback> gAnimationCallbacks = [];
 final ShaderObject dustVertexShader = ShaderObject("dustV")
-  ..AddAttributeVars([aPosition, aCurrentPosition, aNoise])
+  ..AddAttributeVars([aPosition, aCurrentPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
   ..AddTransformVars([tPosition])
   ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
@@ -66,7 +66,7 @@ void main() {
     vec3 curr_pos = ${aCurrentPosition};
 
     vec3 orig_pos = ${aPosition};
-    vec3 orig_col = vec3(0,0,1);
+    vec3 orig_col = ${aColor};
 
    vec3 noise = GetNoise(1.1);
 
@@ -178,7 +178,8 @@ class AnimatedPointCloud {
   late MeshData _out;
 
   AnimatedPointCloud(this._cgl, this._prog, MeshData mesh, int num_points) {
-    _points = ExtractPointCloud(_prog, mesh, num_points, extract_normal: false);
+    _points =
+        ExtractPointCloud(_prog, mesh, num_points, extract_color: true, extract_normal: false);
     // clone _points[aPosition] to _points[aCurrentPosition]
     _points.AddAttribute(aCurrentPosition, _points.GetAttribute(aPosition), 3);
     _points.AddAttribute(aNoise, Float32List(_points.GetNumItems()), 1);
