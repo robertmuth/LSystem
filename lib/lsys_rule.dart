@@ -494,28 +494,41 @@ class PatternInfo {
   int nesting_depth = 0;
   int stack_pushes = 0;
   int line_count = 0;
+  int poly_count = 0;
+  int vertex_count = 0;
 
   PatternInfo(List<TokenIndex> pattern) {
     length = pattern.length;
     int curr = 0;
+    bool in_poly = false;
     for (TokenIndex i in pattern) {
       Token s = Token.GetSymbolForIndex(i);
-      if (s.kind == Kind.STACK_PUSH) {
-        ++stack_pushes;
-        ++curr;
-        if (curr > nesting_depth) nesting_depth = curr;
-      }
-      if (s.kind == Kind.STACK_POP) {
-        --curr;
-      }
-      if (s.kind == Kind.SYMBOL && s.text != "f") {
-        ++line_count;
+      switch (s.kind) {
+        case Kind.STACK_PUSH:
+          ++stack_pushes;
+          ++curr;
+          if (curr > nesting_depth) nesting_depth = curr;
+        case Kind.STACK_POP:
+          --curr;
+        case Kind.POLY_START:
+          ++poly_count;
+          in_poly = true;
+        case Kind.POLY_END:
+          in_poly = false;
+        case Kind.ACTIVE_SYMBOL:
+          if (in_poly) {
+            ++vertex_count;
+          } else {
+            ++line_count;
+          }
+        default:
+          break;
       }
     }
   }
 
   @override
   String toString() {
-    return "length:${length} lines:${line_count} pushes:${stack_pushes} depth:${nesting_depth}";
+    return "len:${length} lines:${line_count} vetices:${vertex_count} polys:${poly_count} pushes:${stack_pushes} depth:${nesting_depth}";
   }
 }
