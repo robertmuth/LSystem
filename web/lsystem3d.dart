@@ -425,8 +425,8 @@ void main() {
   final RenderProgram progAnimatedPoints = RenderProgram(
       "animatedColoredPoints", cgl, shaders.dustVertexShader, shaders.dustFragmentShader);
 
-  final RenderProgram prog =
-      RenderProgram("coloredVertices", cgl, multiColorVertexShader, multiColorFragmentShader);
+  final RenderProgram prog = RenderProgram(
+      "coloredVertices", cgl, shaders.multiColorVertexShader, shaders.multiColorFragmentShader);
 
   Material mat = Material("timer")..SetUniform(uPointSize, 10.0);
   Perspective perspective = Perspective(orbit, 0.1, 5000.0);

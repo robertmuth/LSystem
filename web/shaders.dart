@@ -8,6 +8,29 @@ const int INFLATE_START = 3;
 const int INFLATE_END = 4;
 const int PERIOD = INFLATE_END;
 
+final ShaderObject multiColorVertexShader = ShaderObject("MultiColorVertexColorV")
+  ..AddAttributeVars([aPosition, aColor])
+  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix])
+  ..AddVaryingVars([vColor])
+  ..SetBody([
+    """
+void main() {
+    gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(${aPosition}, 1.0);
+    ${vColor} = ${aColor};
+}
+    """,
+  ]);
+
+final ShaderObject multiColorFragmentShader = ShaderObject("MultiColorVertexColorF")
+  ..AddVaryingVars([vColor])
+  ..SetBody([
+    """
+  void main() {
+     ${oFragColor} = vec4( ${vColor}, 1.0 );
+  }
+"""
+  ]);
+
 final ShaderObject dustVertexShader = ShaderObject("dustV")
   ..AddAttributeVars([aPosition, aNoise, aColor])
   ..AddVaryingVars([vColor])
