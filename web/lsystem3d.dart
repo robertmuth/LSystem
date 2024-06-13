@@ -11,6 +11,7 @@ import 'package:lsystem/webutil.dart' as webutil;
 import 'package:vector_math/vector_math.dart' as VM;
 
 import 'package:chronosgl/chronosgl.dart';
+import 'shaders.dart' as shaders;
 
 final HTML.CanvasElement gCanvas = HTML.querySelector("#area") as HTML.CanvasElement;
 final HTML.SelectElement gPattern = HTML.querySelector("#pattern") as HTML.SelectElement;
@@ -18,166 +19,13 @@ final HTML.SelectElement gMode = HTML.querySelector("#mode") as HTML.SelectEleme
 
 final gExamples = lsys_examples.kExamples3d;
 
+List<AnimationCallback> gAnimationCallbacks = [];
+
 abstract class AnimationCallback {
   String name;
   AnimationCallback(this.name);
   List<AnimationCallback> Update(double nowMs, double elapsedMs);
 }
-
-const String aNoise = "aNoise";
-
-const int DEFLATE_START = 1;
-const int DEFLATE_END = 2;
-const int INFLATE_START = 3;
-const int INFLATE_END = 4;
-const int PERIOD = INFLATE_END;
-
-List<AnimationCallback> gAnimationCallbacks = [];
-
-final ShaderObject dustVertexShader = ShaderObject("dustV")
-  ..AddAttributeVars([aPosition, aNoise, aColor])
-  ..AddVaryingVars([vColor])
-  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uTime, uPointSize])
-  ..SetBody([
-    """
-
-const float bottom = -150.0;
-const vec3 gray = vec3(0.5);
-const vec3 SPREAD_VOL = vec3(500.0, 2.0, 100.0);
-
-float ip(float start, float end, float x) {
-  //return smoothstep(start, end, x);
-
-  if (x <= start) return 0.0;
-  if (x >= end) return 1.0;
-  return (x - start) / (end - start);
-}
-
-// deterministic rng: result is between vec3(-.5) and vec3(.5)
-vec3 GetNoise(float seed) {
-  return vec3(fract(${aNoise} * seed),
-              fract(${aNoise} * seed * 100.0),
-              fract(${aNoise} * seed * 10000.0)) - vec3(0.5);
-}
-vec3 GetVertexNoise(vec3 noise, float x) {
-  return vec3(2.0 + 500.0 * x, 5.0 + 500.0 * x , 10.0 + 500.0 * x) * noise;
-}
-void main() {
-
-    vec3 curr_pos = ${aPosition};
-
-    vec3 orig_pos = ${aPosition};
-    vec3 orig_col = ${aColor};
-
-   vec3 noise = GetNoise(1.1);
-
-    vec3 color_noise =  0.4 * noise ;
-    float time_noise =  0.3 * length(noise);
-    // time_noise = 0.0;
-    float t = mod(${uTime} - time_noise, float(${PERIOD}));
-
-    vec3 new_pos;
-    vec3 new_col;
-
-    if (t <= float(${DEFLATE_START})) {
-      new_pos = orig_pos;
-      new_col = orig_col;
-    } else if (t < float(${DEFLATE_END})) {
-      float x =  ip(float(${DEFLATE_START}), float(${DEFLATE_END}), t);
-      new_pos = mix(orig_pos,
-                    vec3(curr_pos.x, bottom, curr_pos.z) + GetVertexNoise(noise, 1.0 - x), x);
-      new_col = mix(orig_col, gray + color_noise, x);
-
-
-    } else if (t < float(${INFLATE_START})) {
-       new_pos = curr_pos;
-       new_col = gray + color_noise;
-    } else {
-      float x =  ip(float(${INFLATE_START}), float(${INFLATE_END}), t);
-      new_pos =  mix(vec3(curr_pos.x, bottom, curr_pos.z) + GetVertexNoise(noise, x),
-                     orig_pos, x);
-      new_col = mix(gray + color_noise, orig_col, x);
-    }
-
-/*
-    float t = mod(${uTime}, float(${PERIOD}));
-
-    vec3 noise0 = GetNoise(1.1);
-
-    // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
-
-    vec3 noise1 = GetNoise(2.2);
-    vec3 noise2 = GetNoise(3.3);
-    vec3 noise3 = GetNoise(4.4);
-
-    vec3 noiseT = GetNoise(t);
-
-    vec3 color_noise =  0.4 * noise0;
-    float time_noise =  0.3 * length(noise0);
-
-
-
-    vec3 pile_col = gray + color_noise;
-    vec3 pile_pos = SPREAD_VOL * (noise0 + noise1 + noise2 + noise3);
-    pile_pos.y = abs(pile_pos.y) + bottom;
-
-    vec3 new_pos;
-    vec3 new_col;
-
-    if (t <= float(${DEFLATE_START})) {
-      new_pos = orig_pos;
-      new_col = orig_col;
-    } else if (t < float(${DEFLATE_END})) {
-      float x =  ip(float(${DEFLATE_START}), float(${DEFLATE_END}), t);
-      //vec3 noisy_pile_pos =  pile_pos + noiseT * SPREAD_VOL * 0.1 * (1.0 - x);
-      vec3 noisy_pile_pos =  pile_pos;
-
-      new_pos = mix(curr_pos, noisy_pile_pos, x);
-      new_col = mix(orig_col, pile_col, x);
-    } else if (t < float(${INFLATE_START})) {
-       new_pos = curr_pos;
-       new_col = pile_col;
-    } else {
-      float x =  ip(float(${INFLATE_START}), float(${INFLATE_END}), t);
-      new_pos =  mix(curr_pos + noiseT * SPREAD_VOL * 0.1, orig_pos, x);
-      new_col = mix(pile_col, orig_col, x);
-    }
-*/
-
-    // will become aCurrentPosition int the next run
-    ${vColor}.rgb  = new_col;
-    gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(new_pos, 1.0);
-    gl_PointSize = ${uPointSize} / gl_Position.z;
-}
-"""
-  ]);
-
-final ShaderObject dustFragmentShader = ShaderObject("dustF")
-  ..AddVaryingVars([vColor])
-  ..SetBody([
-    """
-void main() {
-    ${oFragColor}.rgb = ${vColor};
-}
-    """
-  ]);
-
-final ShaderObject coloredPointsVertexShader = ShaderObject("coloredPointsVertexShader")
-  ..AddAttributeVars([aPosition, aColor])
-  ..AddVaryingVars([vColor])
-  ..AddUniformVars([uPerspectiveViewMatrix, uModelMatrix, uPointSize])
-  ..SetBody([
-    """void main() {
-  ${vColor} = ${aColor};
-  gl_Position = ${uPerspectiveViewMatrix} * ${uModelMatrix} * vec4(${aPosition}, 1.0);
-  gl_PointSize = ${uPointSize}/gl_Position.z;
-}
-  """
-  ]);
-
-final ShaderObject coloredPointsFragmentShader = ShaderObject("coloredPointsFragmentShader")
-  ..AddVaryingVars([vColor])
-  ..SetBodyWithMain(["${oFragColor}.rgb = ${vColor};"]);
 
 num GetRandom(Math.Random rng, num a, num b) {
   return rng.nextDouble() * (b - a) + a;
@@ -504,7 +352,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
           MeshData mesh = GeometryBuilderToMeshData("tree", _sceneNormal.program, gb);
           MeshData points = ExtractPointCloud(_sceneAnimatedPoints.program, mesh, 200000,
               extract_color: true, extract_normal: false);
-          points.AddAttribute(aNoise, Float32List(points.GetNumItems()), 1);
+          points.AddAttribute(shaders.aNoise, Float32List(points.GetNumItems()), 1);
 
           //AnimatedPointCloud apc =
           //    AnimatedPointCloud(_scene.program.getContext(), _scenePoints.program, mesh, 50000);
@@ -519,7 +367,7 @@ class MaybeSwitchLSystem extends AnimationCallback {
 
 void main() {
   print("Startup");
-  IntroduceNewShaderVar(aNoise, const ShaderVarDesc(VarTypeFloat, ""));
+  IntroduceNewShaderVar(shaders.aNoise, const ShaderVarDesc(VarTypeFloat, ""));
 
   rule.RegisterStandardParams();
   HTML.SelectElement patterns = HTML.querySelector("#pattern") as HTML.SelectElement;
@@ -571,11 +419,11 @@ void main() {
   ChronosGL cgl = ChronosGL(gCanvas);
 
   OrbitCamera orbit = OrbitCamera(700.0, 10.0, 0.0, gCanvas);
-  final RenderProgram progPoints =
-      RenderProgram("coloredPoints", cgl, coloredPointsVertexShader, coloredPointsFragmentShader);
+  final RenderProgram progPoints = RenderProgram(
+      "coloredPoints", cgl, shaders.coloredPointsVertexShader, shaders.coloredPointsFragmentShader);
 
-  final RenderProgram progAnimatedPoints =
-      RenderProgram("animatedColoredPoints", cgl, dustVertexShader, dustFragmentShader);
+  final RenderProgram progAnimatedPoints = RenderProgram(
+      "animatedColoredPoints", cgl, shaders.dustVertexShader, shaders.dustFragmentShader);
 
   final RenderProgram prog =
       RenderProgram("coloredVertices", cgl, multiColorVertexShader, multiColorFragmentShader);
